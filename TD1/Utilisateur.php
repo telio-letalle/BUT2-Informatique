@@ -28,7 +28,7 @@ class Utilisateur {
     }
 
     public function setLogin($login) {
-        $this->login = $login;
+        $this->login = substr($login, 0, 64);
     }
 
     // un constructeur
@@ -37,13 +37,13 @@ class Utilisateur {
         $nom,
         $prenom,
     ) {
-        $this->login = $login;
+        $this->setLogin($login);
         $this->nom = $nom;
         $this->prenom = $prenom;
     }
 
     // Pour pouvoir convertir un objet en chaîne de caractères
     public function __toString() {
-        // À compléter dans le prochain exercice
+        return "Utilisateur $this->nom $this->prenom de login $this->login";
     }
 }
