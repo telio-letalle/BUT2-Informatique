@@ -1,10 +1,6 @@
 <?php
 class Utilisateur {
 
-    private string $login;
-    private string $nom;
-    private string $prenom;
-
     // un getter
     public function getNom() : string {
         return $this->nom;
@@ -33,13 +29,11 @@ class Utilisateur {
 
     // un constructeur
     public function __construct(
-        string $login,
-        string $nom,
-        string $prenom,
+        private string $login,
+        private string $nom,
+        private string $prenom
     ) {
         $this->setLogin($login);
-        $this->nom = $nom;
-        $this->prenom = $prenom;
     }
 
     // Pour pouvoir convertir un objet en chaîne de caractères
