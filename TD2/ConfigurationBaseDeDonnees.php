@@ -5,7 +5,7 @@ require_once __DIR__ . '/../credentials.php';
 class ConfigurationBaseDeDonnees {
 
     static private array $configurationBaseDeDonnees = array(
-        'nomHote' => 'localhost', // webinfo.iutmontp.univ-montp2.fr (serveur à l'iut)
+        'nomHote' => 'host.docker.internal', // webinfo.iutmontp.univ-montp2.fr (serveur à l'iut)
         'nomBaseDeDonnees' => 'letallet',
         'port' => '3306', // 3316 (port à l'iut)
         'login' => LOGIN_BDD,
