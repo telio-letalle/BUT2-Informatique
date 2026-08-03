@@ -4,7 +4,7 @@ require_once 'ConfigurationBaseDeDonnees.php';
 
 class ConnexionBaseDeDonnees {
 
-    private static $instance = null;
+    private static ?ConnexionBaseDeDonnees $instance = null;
 
     private PDO $pdo;
 
@@ -19,7 +19,14 @@ class ConnexionBaseDeDonnees {
         $login = ConfigurationBaseDeDonnees::getLogin();
         $motDePasse = ConfigurationBaseDeDonnees::getMotDePasse();
 
-        $this->pdo = new PDO("mysql:host=$nomHote;port=$port;dbname=$nomBaseDeDonnees",$login,$motDePasse);
+        // Connexion à la base de données
+        // Le dernier argument sert à ce que toutes les chaines de caractères
+        // en entrée et sortie de MySql soient dans le codage UTF-8
+        $this->pdo = new PDO("mysql:host=$nomHote;port=$port;dbname=$nomBaseDeDonnees", $login, $motDePasse,
+            array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+
+        // On active le mode d'affichage des erreurs, et le lancement d'exception en cas d'erreur
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
 
     // getInstance s'assure que le constructeur ne sera
