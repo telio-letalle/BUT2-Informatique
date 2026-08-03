@@ -12,9 +12,9 @@ var_dump($utilisateurFormatTableau);
 echo "</p>\n";
 
 $utilisateur = new Utilisateur(
-    $utilisateurFormatTableau['loginBaseDeDonnees'],
-    $utilisateurFormatTableau['nomBaseDeDonnees'],
-    $utilisateurFormatTableau['prenomBaseDeDonnees']
+    $utilisateurFormatTableau['login'],
+    $utilisateurFormatTableau['nom'],
+    $utilisateurFormatTableau['prenom']
 );
 echo "<h4>" . "Premier utilisateur fetch : ". $utilisateur . "</h4>\n";
 
@@ -23,9 +23,9 @@ $pdoStatement = $pdo->query("SELECT * FROM utilisateur");
 echo "<h3>Liste des utilisateurs : </h3><ul>\n";
 foreach ($pdoStatement as $utilisateurFormatTableau) {
     $utilisateur = new Utilisateur(
-        $utilisateurFormatTableau['loginBaseDeDonnees'],
-        $utilisateurFormatTableau['nomBaseDeDonnees'],
-        $utilisateurFormatTableau['prenomBaseDeDonnees']
+        $utilisateurFormatTableau['login'],
+        $utilisateurFormatTableau['nom'],
+        $utilisateurFormatTableau['prenom']
     );
 
     echo "<li>" . $utilisateur . "</li>\n";

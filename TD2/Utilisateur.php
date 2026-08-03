@@ -43,9 +43,9 @@ class Utilisateur {
 
     public static function construireDepuisTableauSQL(array $utilisateurFormatTableau) : Utilisateur {
         return new Utilisateur(
-            $utilisateurFormatTableau['loginBaseDeDonnees'],
-            $utilisateurFormatTableau['nomBaseDeDonnees'],
-            $utilisateurFormatTableau['prenomBaseDeDonnees']
+            $utilisateurFormatTableau['login'],
+            $utilisateurFormatTableau['nom'],
+            $utilisateurFormatTableau['prenom']
         );
     }
 
