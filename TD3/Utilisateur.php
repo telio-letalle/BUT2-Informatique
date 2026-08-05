@@ -45,6 +45,20 @@ class Utilisateur {
         return "Utilisateur $this->nom $this->prenom de login $this->login";
     }
 
+    public function ajouter() : void {
+        $sql = "INSERT INTO utilisateur(login, nom, prenom) VALUES(:login, :nom, :prenom)";
+        // Préparation de la requête
+        $pdoStatement = ConnexionBaseDeDonnees::getPdo()->prepare($sql);
+
+        $values = array(
+            "login" => $this->getLogin(),
+            "nom" => $this->getNom(),
+            "prenom" => $this->getPrenom()
+        );
+        // On donne les valeurs et on exécute la requête
+        $pdoStatement->execute($values);
+    }
+
     public static function construireDepuisTableauSQL(array $utilisateurFormatTableau) : Utilisateur {
         return new Utilisateur(
             $utilisateurFormatTableau['login'],
@@ -71,7 +85,8 @@ class Utilisateur {
         return $utilisateurs;
     }
 
-    public static function recupererUtilisateurParLogin(string $login) : ?Utilisateur {
+    public static function recupererUtilisateurParLogin(string $login) : ?Utilisateur
+    {
         $sql = "SELECT * from utilisateur WHERE login = :loginTag";
         // Préparation de la requête
         $pdoStatement = ConnexionBaseDeDonnees::getPdo()->prepare($sql);
