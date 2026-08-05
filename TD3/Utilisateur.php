@@ -1,4 +1,8 @@
 <?php
+
+require_once 'ConnexionBaseDeDonnees.php';
+
+
 class Utilisateur {
 
     // un getter
@@ -65,5 +69,28 @@ class Utilisateur {
         }
 
         return $utilisateurs;
+    }
+
+    public static function recupererUtilisateurParLogin(string $login) : ?Utilisateur {
+        $sql = "SELECT * from utilisateur WHERE login = :loginTag";
+        // Préparation de la requête
+        $pdoStatement = ConnexionBaseDeDonnees::getPdo()->prepare($sql);
+
+        $values = array(
+            "loginTag" => $login,
+            //nomdutag => valeur, ...
+        );
+        // On donne les valeurs et on exécute la requête
+        $pdoStatement->execute($values);
+
+        // On récupère les résultats comme précédemment
+        // Note: fetch() renvoie false si pas d'utilisateur correspondant
+        $utilisateurFormatTableau = $pdoStatement->fetch();
+
+        if ($utilisateurFormatTableau === false) {
+            return null;
+        }
+
+        return Utilisateur::construireDepuisTableauSQL($utilisateurFormatTableau);
     }
 }
