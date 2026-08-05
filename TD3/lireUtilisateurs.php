@@ -1,6 +1,5 @@
 <?php
 
-require_once 'ConnexionBaseDeDonnees.php';
 require_once 'Utilisateur.php';
 
 $pdo = ConnexionBaseDeDonnees::getPdo();
