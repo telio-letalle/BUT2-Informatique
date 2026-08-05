@@ -8,6 +8,10 @@ var_dump($utilisateur);
 
 echo "<br>";
 
-$utilisateur = Utilisateur::recupererUtilisateurParLogin("loginNonExistant");
+$utilisateur2 = Utilisateur::recupererUtilisateurParLogin("loginNonExistant");
 
-var_dump($utilisateur);
+var_dump($utilisateur2);
+
+$utilisateur3 = new Utilisateur("bazina", "bazin", "alexandre");
+
+$utilisateur3->ajouter();
