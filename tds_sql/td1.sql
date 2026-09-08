@@ -1,4 +1,13 @@
 /*
+LIVRES (idLivre, nomLivre, anneeLivre, prixLivre, categorieLivre, idEditeur#)
+EDITEURS (idEditeur, nomEditeur, paysEditeur)
+ADHERENTS (idAdherent, nomAdherent, prenomAdherent, typeAdherent, idAdherentParrain#)
+EMPRUNTS (idEmprunt, dateEmprunt, dateRetour, idLivre#, idAdherent#)
+*/
+
+--------------------------------------------------------------------------------
+
+/*
 R10 : l’identifiant des livres qui sont actuellement empruntés.
 */
 
@@ -53,7 +62,7 @@ AND l.prixLivre = (
     FROM Livres l
     JOIN Editeurs e ON l.idEditeur = e.idEditeur
     WHERE E.nomEditeur = 'Eyrolles'
-)
+);
 
 
 /*
@@ -68,7 +77,7 @@ WHERE a.idAdherent IN (
     MINUS
     SELECT idAdherent
     FROM Emprunts 
-)
+);
 
 
 /*
@@ -92,4 +101,58 @@ WHERE a.idAdherent IN (
     JOIN Emprunts e ON a.idAdherent = e.idAdherent
     JOIN Livres l ON e.idLivre = l.idLivre
     WHERE l.nomLivre  = 'Coder Proprement'
+);
+
+
+/*
+R17 : le nom, le pays et le nombre de livres édités par chaque éditeur.
+*/
+
+SELECT e.nomEditeur, e.paysEditeur, COUNT(idLivre)
+FROM Editeurs e
+LEFT JOIN Livres l ON e.idEditeur = l.idEditeur
+GROUP BY e.nomEditeur, e.paysEditeur;
+
+
+/*
+R18 : le nom des livres qui ont plus de 3 emprunts.
+*/
+
+SELECT l.nomLivre
+FROM Emprunts e
+JOIN Livres l ON e.idLIvre = l.idLIvre
+GROUP BY l.nomLivre, l.idLivre
+HAVING COUNT(*) > 3;
+
+
+/*
+R19 : le nom et le prénom des adhérents qui n’ont emprunté que des livres de la catégorie
+'Gestion'.
+*/
+
+SELECT a.nomAdherent, a.prenomAdherent
+FROM Adherents a
+WHERE EXISTS (
+    SELECT 1
+    FROM Emprunts e
+    WHERE e.idAdherent = a.idAdherent
 )
+AND NOT EXISTS (
+    SELECT 1
+    FROM Emprunts e
+    JOIN Livres l ON e.idLivre = l.idLivre
+    WHERE e.idAdherent = a.idAdherent
+      AND l.categorieLivre <> 'Gestion'
+);
+
+
+/*
+R20 : le nom des adhérents qui ont emprunté tous les livres de la catégorie 'Gestion'.
+*/
+
+
+
+
+/*
+R21 : le nom et le prénom des étudiants qui n’ont pas de parrain.
+*/
