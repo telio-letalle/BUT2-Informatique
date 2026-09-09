@@ -161,3 +161,30 @@ SELECT a.nomAdherent, a.prenomAdherent
 FROM Adherents a 
 WHERE a.idAdherentParrain IS NULL;
 /* me semble correct mais affiche des adhérents en trop */
+
+
+/*
+R22 : le nom et prénom des adhérents qui ont emprunté plusieurs fois un même livre.
+*/
+
+SELECT a.nomAdherent, a.prenomAdherent
+FROM Adherents a
+JOIN Emprunts e ON a.idAdherent = e.idAdherent
+JOIN Livres l ON e.idLivre = l.idLivre
+GROUP BY a.nomAdherent, a.prenomAdherent, l.nomLivre
+HAVING COUNT(l.nomLivre) > 1;
+
+
+/*
+R23 : le nom et le prénom de l’adhérent qui a le plus d’emprunts.
+*/
+
+SELECT * FROM (
+    SELECT a.nomAdherent, a.prenomAdherent
+    FROM Adherents a
+    JOIN Emprunts e ON a.idAdherent = e.idAdherent
+    GROUP BY a.nomAdherent, a.prenomAdherent
+    ORDER BY COUNT(e.idEmprunt) DESC
+)
+WHERE ROWNUM = 1
+/* La correction donne 'Chette''Barbie' mais 'Neymar''Jean' a le plus d'emprunts (9). */
