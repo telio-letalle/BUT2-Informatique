@@ -188,3 +188,30 @@ SELECT * FROM (
 )
 WHERE ROWNUM = 1
 /* La correction donne 'Chette''Barbie' mais 'Neymar''Jean' a le plus d'emprunts (9). */
+
+
+/*
+R24 : le numéro et la durée (en nombre de jours) de l’emprunt qui a duré le plus de temps
+(uniquement dans les emprunts dont le livre a été rendu).
+*/
+
+SELECT e.idEmprunt, e.dateRetour - e.dateEmprunt
+FROM Emprunts e
+WHERE e.dateRetour IS NOT NULL
+AND e.dateRetour - e.dateEmprunt = (
+    SELECT MAX(e.dateRetour - e.dateEmprunt)
+    FROM Emprunts e
+)
+
+
+/*
+R25 : le nom et le pays des éditeurs qui éditent moins de 2 livres.
+*/
+
+/*
+SELECT e.nomEditeur, e.paysEditeur
+FROM Editeurs e
+JOIN Livres l ON e.idEditeur = l.idEditeur
+GROUP BY l.nomLivre
+HAVING COUNT(*) < 2
+ A finir */
