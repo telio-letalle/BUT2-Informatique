@@ -157,3 +157,7 @@ R20 : le nom des adhérents qui ont emprunté tous les livres de la catégorie '
 R21 : le nom et le prénom des étudiants qui n’ont pas de parrain.
 */
 
+SELECT a.nomAdherent, a.prenomAdherent 
+FROM Adherents a 
+WHERE a.idAdherentParrain IS NULL;
+/* me semble correct mais affiche des adhérents en trop */
