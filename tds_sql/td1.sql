@@ -34,7 +34,7 @@ FROM Livres
 WHERE idLivre IN (
     SELECT e.idLivre
     FROM Emprunts e
-    JOIN Adherents a
+    JOIN Adherents a ON a.idAdherent = e.idAdherent
     WHERE a.prenomAdherent = 'Barbie'
     AND a.nomAdherent = 'Chette'
 );
@@ -156,3 +156,4 @@ R20 : le nom des adhérents qui ont emprunté tous les livres de la catégorie '
 /*
 R21 : le nom et le prénom des étudiants qui n’ont pas de parrain.
 */
+
