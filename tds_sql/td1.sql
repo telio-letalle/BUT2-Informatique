@@ -186,7 +186,7 @@ SELECT * FROM (
     GROUP BY a.nomAdherent, a.prenomAdherent
     ORDER BY COUNT(e.idEmprunt) DESC
 )
-WHERE ROWNUM = 1
+WHERE ROWNUM = 1;
 /* La correction donne 'Chette''Barbie' mais 'Neymar''Jean' a le plus d'emprunts (9). */
 
 
@@ -201,17 +201,73 @@ WHERE e.dateRetour IS NOT NULL
 AND e.dateRetour - e.dateEmprunt = (
     SELECT MAX(e.dateRetour - e.dateEmprunt)
     FROM Emprunts e
-)
+);
 
 
 /*
 R25 : le nom et le pays des éditeurs qui éditent moins de 2 livres.
 */
 
-/*
 SELECT e.nomEditeur, e.paysEditeur
 FROM Editeurs e
-JOIN Livres l ON e.idEditeur = l.idEditeur
-GROUP BY l.nomLivre
-HAVING COUNT(*) < 2
- A finir */
+LEFT JOIN Livres l ON e.idEditeur = l.idEditeur
+GROUP BY e.nomEditeur, e.paysEditeur
+HAVING COUNT(l.idLivre) < 2;
+
+
+/*
+R26 : le nom et le prénom des adhérents qui se prénomment 'Jeanne' ou bien qui ont
+emprunté un livre de la catégorie 'Gestion'.
+*/
+
+SELECT a.nomAdherent, a.prenomAdherent
+FROM Adherents a
+WHERE a.prenomAdherent = 'Jeanne'
+UNION
+SELECT a.nomAdherent, a.prenomAdherent
+FROM Adherents a
+JOIN Emprunts e ON a.idAdherent = e.idAdherent
+JOIN Livres l ON e.idLivre = l.idLivre
+WHERE l.categorieLivre = 'Gestion';
+
+
+/*
+R27 : le nom, le prénom et le nombre de filleuls de chaque adhérent (les adhérents qui n’ont
+pas de filleul doivent apparaitre).
+*/
+
+SELECT a.nomAdherent, a.prenomAdherent, COUNT(a1.idAdherent) AS nbFilleuls
+FROM Adherents a
+LEFT JOIN Adherents a1 ON a.idAdherent = a1.idAdherentParrain
+GROUP BY a.idAdherent, a.nomAdherent, a.prenomAdherent;
+
+
+/*
+R28 : le nom et le prénom des adhérents qui ont emprunté des livres de toutes les catégories.
+*/
+
+SELECT a.nomAdherent, a.prenomAdherent
+FROM Adherents a
+JOIN Emprunts e ON a.idAdherent = e.idAdherent
+JOIN Livres l ON e.idLivre = l.idLivre
+GROUP BY a.nomAdherent, a.prenomAdherent
+HAVING COUNT(DISTINCT l.categorieLivre) = (
+    SELECT COUNT(DISTINCT l.categorieLivre)
+    FROM Livres l
+)
+
+-- -- -- Ma réponse donne Neymar Jean en +, 
+-- -- -- via la requête suivante on voit qu'il a aussi emprunté les 3 catégories  
+-- SELECT l.categorieLivre, a.nomAdherent, a.prenomAdherent, COUNT(DISTINCT l.categorieLivre)
+-- FROM Adherents a
+-- JOIN Emprunts e ON a.idAdherent = e.idAdherent
+-- JOIN Livres l ON e.idLivre = l.idLivre
+-- WHERE a.prenomAdherent = 'Omer' OR a.prenomAdherent = 'Jean'
+-- GROUP BY l.categorieLivre, a.nomAdherent, a.prenomAdherent
+
+/*
+LIVRES (idLivre, nomLivre, anneeLivre, prixLivre, categorieLivre, idEditeur#)
+EDITEURS (idEditeur, nomEditeur, paysEditeur)
+ADHERENTS (idAdherent, nomAdherent, prenomAdherent, typeAdherent, idAdherentParrain#)
+EMPRUNTS (idEmprunt, dateEmprunt, dateRetour, idLivre#, idAdherent#)
+*/
