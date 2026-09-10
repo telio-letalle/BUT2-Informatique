@@ -265,6 +265,21 @@ HAVING COUNT(DISTINCT l.categorieLivre) = (
 -- WHERE a.prenomAdherent = 'Omer' OR a.prenomAdherent = 'Jean'
 -- GROUP BY l.categorieLivre, a.nomAdherent, a.prenomAdherent
 
+
+/*
+R29 : le nom des éditeurs dont tous les livres coûtent moins de 35€.
+*/
+
+SELECT DISTINCT e.nomEditeur
+FROM Editeurs e
+JOIN Livres l ON e.idEditeur = l.idEditeur
+WHERE NOT EXISTS (
+    SELECT *
+    FROM Livres l
+    WHERE e.idEditeur = l.idEditeur
+    AND l.prixLivre >= 35
+)
+
 /*
 LIVRES (idLivre, nomLivre, anneeLivre, prixLivre, categorieLivre, idEditeur#)
 EDITEURS (idEditeur, nomEditeur, paysEditeur)
