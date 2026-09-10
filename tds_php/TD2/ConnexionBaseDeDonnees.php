@@ -1,10 +1,10 @@
 <?php
 
-require_once 'ConfigurationBaseDeDonnees.php';
+require_once 'ConfigurationBaseDeDonnees.ini';
 
 class ConnexionBaseDeDonnees {
 
-    private static ?ConnexionBaseDeDonnees $instance = null;
+    private static $instance = null;
 
     private PDO $pdo;
 
@@ -12,18 +12,28 @@ class ConnexionBaseDeDonnees {
         return ConnexionBaseDeDonnees::getInstance()->pdo;
     }
 
-    private function __construct () {
-        $nomHote = ConfigurationBaseDeDonnees::getNomHote();
-        $port = ConfigurationBaseDeDonnees::getPort();
-        $nomBaseDeDonnees = ConfigurationBaseDeDonnees::getNomBaseDeDonnees();
-        $login = ConfigurationBaseDeDonnees::getLogin();
-        $motDePasse = ConfigurationBaseDeDonnees::getMotDePasse();
+    public function __construct () {
+        $configurationBaseDeDonnees = parse_ini_file(
+            'ConfigurationBaseDeDonnees.ini',
+            false,
+            INI_SCANNER_RAW
+        );
+
+        $nomHote = $configurationBaseDeDonnees['nomHote'];
+        $port = $configurationBaseDeDonnees['port'];
+        $nomBaseDeDonnees = $configurationBaseDeDonnees['nomBaseDeDonnees'];
+        $login = $configurationBaseDeDonnees['login'];
+        $motDePasse = $configurationBaseDeDonnees['motDePasse'];
 
         // Connexion à la base de données
         // Le dernier argument sert à ce que toutes les chaines de caractères
         // en entrée et sortie de MySql soient dans le codage UTF-8
-        $this->pdo = new PDO("mysql:host=$nomHote;port=$port;dbname=$nomBaseDeDonnees", $login, $motDePasse,
-            array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+        $this->pdo = new PDO(
+            "mysql:host=$nomHote;port=$port;dbname=$nomBaseDeDonnees",
+            $login,
+            $motDePasse,
+            array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")
+        );
 
         // On active le mode d'affichage des erreurs, et le lancement d'exception en cas d'erreur
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
