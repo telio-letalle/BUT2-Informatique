@@ -280,6 +280,23 @@ WHERE NOT EXISTS (
     AND l.prixLivre >= 35
 )
 
+
+/*
+R30 : le nom et l’année des livres qui sont ou ont été empruntés par tous les enseignants.
+*/
+
+SELECT l.nomLivre, l.anneeLivre
+FROM Livres l
+JOIN Emprunts e ON l.idLivre = e.idLivre
+JOIN Adherents a ON e.idAdherent = a.idAdherent
+WHERE a.typeAdherent = 'Enseignant'
+GROUP BY l.nomLivre, l.anneeLivre
+HAVING COUNT(DISTINCT a.idAdherent) = (
+    SELECT COUNT(DISTINCT a.idAdherent)
+    FROM Adherents a
+    WHERE a.typeAdherent = 'Enseignant'
+)
+
 /*
 LIVRES (idLivre, nomLivre, anneeLivre, prixLivre, categorieLivre, idEditeur#)
 EDITEURS (idEditeur, nomEditeur, paysEditeur)
