@@ -11,9 +11,8 @@ EMPRUNTS (idEmprunt, dateEmprunt, dateRetour, idLivre#, idAdherent#)
 R10 : l’identifiant des livres qui sont actuellement empruntés.
 */
 
-SELECT l.idLivre
-FROM Livres l
-JOIN Emprunts e ON l.idLivre = e.idLivre
+SELECT e.idLivre
+FROM Emprunts e
 WHERE e.dateRetour IS NULL;
 
 
