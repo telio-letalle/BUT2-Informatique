@@ -1,7 +1,7 @@
 <?php
 
 // On inclut les fichiers de classe PHP pour pouvoir se servir de la classe ConfigurationBaseDeDonnees.
-// require_once évite que ConfigurationBaseDeDonnees.php soit inclus plusieurs fois,
+// require_once évite que ConfigurationBaseDeDonnees.ini soit inclus plusieurs fois,
 // et donc que la classe ConfigurationBaseDeDonnees soit déclaré plus d'une fois.
 require_once 'ConfigurationBaseDeDonnees.ini';
 

@@ -1,8 +1,4 @@
 <?php
-
-require_once 'ConnexionBaseDeDonnees.php';
-
-
 class Utilisateur {
 
     // un getter
@@ -45,25 +41,11 @@ class Utilisateur {
         return "Utilisateur $this->nom $this->prenom de login $this->login";
     }
 
-    public function ajouter() : void {
-        $sql = "INSERT INTO utilisateur(login, nom, prenom) VALUES(:login, :nom, :prenom)";
-        // Préparation de la requête
-        $pdoStatement = ConnexionBaseDeDonnees::getPdo()->prepare($sql);
-
-        $values = array(
-            "login" => $this->getLogin(),
-            "nom" => $this->getNom(),
-            "prenom" => $this->getPrenom()
-        );
-        // On donne les valeurs et on exécute la requête
-        $pdoStatement->execute($values);
-    }
-
     public static function construireDepuisTableauSQL(array $utilisateurFormatTableau) : Utilisateur {
         return new Utilisateur(
-            $utilisateurFormatTableau['login'],
-            $utilisateurFormatTableau['nom'],
-            $utilisateurFormatTableau['prenom']
+            $utilisateurFormatTableau['loginBaseDeDonnees'],
+            $utilisateurFormatTableau['nomBaseDeDonnees'],
+            $utilisateurFormatTableau['prenomBaseDeDonnees']
         );
     }
 
@@ -83,29 +65,5 @@ class Utilisateur {
         }
 
         return $utilisateurs;
-    }
-
-    public static function recupererUtilisateurParLogin(string $login) : ?Utilisateur
-    {
-        $sql = "SELECT * from utilisateur WHERE login = :loginTag";
-        // Préparation de la requête
-        $pdoStatement = ConnexionBaseDeDonnees::getPdo()->prepare($sql);
-
-        $values = array(
-            "loginTag" => $login,
-            //nomdutag => valeur, ...
-        );
-        // On donne les valeurs et on exécute la requête
-        $pdoStatement->execute($values);
-
-        // On récupère les résultats comme précédemment
-        // Note: fetch() renvoie false si pas d'utilisateur correspondant
-        $utilisateurFormatTableau = $pdoStatement->fetch();
-
-        if ($utilisateurFormatTableau === false) {
-            return null;
-        }
-
-        return Utilisateur::construireDepuisTableauSQL($utilisateurFormatTableau);
     }
 }
