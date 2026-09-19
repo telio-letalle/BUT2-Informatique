@@ -1,0 +1,10 @@
+stages:
+  - hello
+
+dabalassibotacata:
+  stage: hello
+  image: alpine:latest
+  script:
+    - echo ahhhhhhhhhhhh
+  rules:
+    - if: $CI_COMMIT_BRANCH == "development"
