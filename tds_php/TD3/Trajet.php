@@ -13,6 +13,11 @@ class Trajet {
     private Utilisateur $conducteur;
     private bool $nonFumeur;
 
+    /**
+     * @var Utilisateur[]
+     */
+    private array $passagers;
+
     public function __construct(
         ?int $id,
         string $depart,
@@ -20,7 +25,8 @@ class Trajet {
         DateTime $date,
         int $prix,
         Utilisateur $conducteur,
-        bool $nonFumeur
+        bool $nonFumeur,
+        array $passagers = []
     )
     {
         $this->id = $id;
@@ -30,21 +36,27 @@ class Trajet {
         $this->prix = $prix;
         $this->conducteur = $conducteur;
         $this->nonFumeur = $nonFumeur;
+        $this->passagers = $passagers;
     }
 
     public static function construireDepuisTableauSQL(array $trajetTableau) : Trajet {
         $date = new DateTime($trajetTableau['date']);
         $utilisateur = Utilisateur::recupererUtilisateurParLogin($trajetTableau["conducteurLogin"]);
+        $passagers = array();
 
-        return new Trajet(
+        $trajet = new Trajet(
             $trajetTableau["id"],
             $trajetTableau["depart"],
             $trajetTableau["arrivee"],
             $date,
             $trajetTableau["prix"],
             $utilisateur,
-            $trajetTableau["nonFumeur"], // À changer ?
+            $trajetTableau["nonFumeur"]
         );
+
+        $trajet->setPassagers($trajet->recupererPassagers());
+
+        return $trajet;
     }
 
     public function getId(): ?int
@@ -117,6 +129,14 @@ class Trajet {
         $this->nonFumeur = $nonFumeur;
     }
 
+    public function getPassagers(): array {
+        return $this->passagers;
+    }
+
+    public function setPassagers(array $passagers): void {
+        $this->passagers = $passagers;
+    }
+
     public function __toString()
     {
         $nonFumeur = $this->nonFumeur ? " non fumeur" : " ";
@@ -139,6 +159,28 @@ class Trajet {
         return $trajets;
     }
 
+    /**
+     * @return Utilisateur[]
+     */
+    private function recupererPassagers() : array {
+        $sql = "SELECT u.* FROM passager p INNER JOIN utilisateur u ON p.passagerLogin = u.login WHERE p.trajetId = :trajetIdTag";
+
+        $pdoStatement = ConnexionBaseDeDonnees::getPdo()->prepare($sql);
+
+        $values = array(
+            "trajetIdTag" => $this->id
+        );
+
+        $pdoStatement->execute($values);
+
+        $passagers = [];
+        foreach ($pdoStatement as $passagerTableau) {
+            $passagers[] = Utilisateur::construireDepuisTableauSQL($passagerTableau);
+        }
+
+        return $passagers;
+    }
+
     public function ajouter() : void {
         $sql = 'INSERT INTO trajet (depart, arrivee, date, prix, conducteurLogin, nonFumeur) VALUES(:departTag, :arriveeTag, :dateTag, :prixTag, :conducteurLoginTag, :nonFumeurTag)';
 
@@ -150,7 +192,7 @@ class Trajet {
             "dateTag" => $this->date->format("Y-m-d"),
             "prixTag" => $this->prix,
             "conducteurLoginTag" => $this->conducteur->getLogin(),
-            "nonFumeurTag" => $this->isNonFumeur() ? 1 : 0,
+            "nonFumeurTag" => $this->isNonFumeur() ? 1 : 0
         );
 
         $pdoStatement->execute($values);
