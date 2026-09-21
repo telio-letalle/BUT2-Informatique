@@ -163,7 +163,7 @@ class Trajet {
      * @return Utilisateur[]
      */
     private function recupererPassagers() : array {
-        $sql = "SELECT u.* FROM passager p INNER JOIN utilisateur u ON p.passagerLogin = u.login WHERE p.trajetId = :trajetIdTag";
+        $sql = "SELECT u.* FROM passager p INNER JOIN utilisateur u ON p.passagerLogin = u.loginBaseDeDonnees WHERE p.trajetId = :trajetIdTag";
 
         $pdoStatement = ConnexionBaseDeDonnees::getPdo()->prepare($sql);
 
