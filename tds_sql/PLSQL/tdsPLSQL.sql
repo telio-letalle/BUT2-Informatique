@@ -164,4 +164,56 @@ END;
 -- Troisième partie : Les curseurs
 
 -- 10
-CREATE OR REPLACE PROCEDURE affichage
+CREATE OR REPLACE PROCEDURE affichageParticipantsTournoi(p_idTournoi IN Tournois.idTournoi%TYPE) IS
+BEGIN
+    FOR v_participants IN (
+        SELECT nomJoueur, prenomJoueur, eloJoueur
+        FROM Joueurs j
+        JOIN Participer p ON j.idJoueur = p.idJoueur
+        WHERE p.idTournoi = p_idTournoi
+        ORDER BY eloJoueur DESC
+    )
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(v_participants.nomJoueur || ' ' || v_participants.prenomJoueur || ' ' || v_participants.eloJoueur);
+    END LOOP;
+END;
+
+-- 11
+CREATE OR REPLACE PROCEDURE affichageToutTournoi(p_idTournoi IN Tournois.idTournoi%TYPE) IS
+BEGIN
+    affichageInfosTournoi(p_idTournoi);
+    affichageParticipantsTournoi(p_idTournoi);
+END;
+
+-- 12
+SET SERVEROUTPUT ON SIZE UNLIMITED FORMAT WRAPPED;
+CREATE OR REPLACE PROCEDURE affichageJoueursParLigueEtClub(p_idLigue IN Ligues.idLigue%TYPE) IS
+BEGIN
+    FOR v_clubs IN (
+        SELECT c.idClub, nomClub, COUNT(j.idJoueur) AS nbrJoueurs
+        FROM Clubs c
+        JOIN Joueurs j ON c.idClub = j.idClub
+        WHERE idLigue = p_idLigue
+        GROUP BY c.idClub, nomClub
+        ORDER BY nomclub
+    )
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('');
+        DBMS_OUTPUT.PUT_LINE('Club : ' || v_clubs.idClub || ' ' || v_clubs.nomClub || ' (' || v_clubs.nbrJoueurs || ' joueurs)');
+
+        FOR v_participants IN (
+            SELECT j.idJoueur, nomJoueur, prenomJoueur, eloJoueur, COUNT(p.idTournoi) AS nbrTournois
+            FROM Joueurs j
+            JOIN Clubs c ON j.idClub = c.idClub 
+            LEFT JOIN Participer p ON j.idJoueur = p.idJoueur
+            WHERE c.idLigue = p_idLigue
+            AND c.idClub = v_clubs.idClub
+            GROUP BY j.idJoueur, nomJoueur, prenomJoueur, eloJoueur
+            ORDER BY nbrTournois DESC, eloJoueur DESC
+        )
+        LOOP
+            DBMS_OUTPUT.PUT_LINE('-----> ' || v_participants.nomJoueur || ' ' || v_participants.prenomJoueur || ' ' || v_participants.eloJoueur || ' a participé à ' || v_participants.nbrTournois || ' tournoi(s)');
+        END LOOP;
+    END LOOP;
+END;
+
