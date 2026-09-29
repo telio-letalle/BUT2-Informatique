@@ -217,3 +217,19 @@ BEGIN
     END LOOP;
 END;
 
+-- 13
+CREATE OR REPLACE FUNCTION categorieJoueur(
+    p_dateNaissance IN Joueurs.dateNaissanceJoueur%TYPE,
+    p_sexe IN Joueurs.sexeJoueur%TYPE
+) RETURN VARCHAR IS
+BEGIN
+    IF p_dateNaissance >= '1/1/1972' AND p_dateNaissance < '1/1/2006'
+    THEN 
+        RETURN 'Sen' || p_sexe;
+    ELSIF p_dateNaissance > '1/1/2006'
+    THEN
+        RETURN 'Jun' || p_sexe;
+    ELSE
+        RETURN 'Vet' || p_sexe;
+    END IF;
+END;
