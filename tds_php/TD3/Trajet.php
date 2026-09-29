@@ -19,14 +19,14 @@ class Trajet {
     private array $passagers;
 
     public function __construct(
-        ?int $id,
-        string $depart,
-        string $arrivee,
-        DateTime $date,
-        int $prix,
+        ?int              $id,
+        string            $depart,
+        string            $arrivee,
+        DateTime          $date,
+        int               $prix,
         Utilisateur $conducteur,
-        bool $nonFumeur,
-        array $passagers = []
+        bool              $nonFumeur,
+        array             $passagers = []
     )
     {
         $this->id = $id;
