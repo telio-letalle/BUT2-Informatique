@@ -1,0 +1,202 @@
+PRODUIT(Np, Lib, Coul, QS)
+CLIENT(NCli, Nom, Adr)
+ACHAT( # NCli, # Np, QA)
+Q1 Editer (c.a.d. donner la liste) les libell´es des produits.
+LIB
+---
+Crayon
+Encre
+Lampe
+Crayon Luxe
+Agrafeuse
+Pese-lettre
+Calculatrice
+
+SELECT DISTINCT lib FROM Produit
+
+
+Q2 Editer la liste des noms des clients
+NOM
+---
+Jamar
+Johnson
+Vilarem
+Marchand
+Rifflet
+Defrere
+Garey
+Jacob
+Ullman
+Smith
+
+SELECT DISTINCT nom FROM Client
+
+
+Q3 Editer tous les produits dont la quantité en stock est sup´erieure ou ´egale `a 50.
+NP LIB COUL QS
+-----------------------
+1 Agrafeuse Rouge 180
+2 Calculatrice Noir 200
+4 Lampe Rouge 99
+5 Lampe Blanc 100
+6 Lampe Bleu 105
+7 Lampe Vert 105
+14 Crayon Luxe Noir 50
+
+SELECT * FROM Produit WHERE QS>=50;
+
+
+Q4 Editer tous les achats dont la quantit´e achet´ee est strictement sup´erieure `a 12.
+NCLI NP QA
+--------------
+101 1 13
+101 3 15
+101 4 15
+
+SELECT * FROM ACHAT WHERE QA>12;
+
+
+Q5 Editer les quantit´es en stock et les couleurs des lampes (i.e. des produits dont le libell´e est ’Lampe’)
+QS COUL
+--------
+99 Rouge
+100 Blanc
+105 Bleu
+105 Vert
+
+SELECT QS, Coul FROM Produit WHERE Lib='Lampe';
+
+
+Q6 Editer les num´eros des crayons de luxe dont la quantit´e en stock est sup´erieure ou ´egale `a 20.
+NP
+--
+11
+13
+14
+
+SELECT Np FROM Produit WHERE Lib='Crayon Luxe' AND QS>= 20;
+
+
+Q7 Editer les num´eros des clients ayant fait au moins un achat de quantit´e sup´erieure ou ´egale `a 10.
+NCLI
+--
+108
+101
+107
+104
+106
+
+SELECT DISTINCT c.Ncli FROM Client c JOIN Achat a ON a.ncli=c.ncli WHERE QA>= 10;
+
+
+Q8 Editer les num´eros des clients dont le nom commence par un J et contient la lettre a.
+NCLI
+--
+107
+108
+
+SELECT DISTINCT Ncli FROM Client WHERE Nom LIKE 'J%a%';
+
+
+Q9 Dresser la liste des num´eros des clients qui ont achet´e des lampes.
+NCLI
+---
+108
+101
+107
+104
+105
+103
+106
+
+SELECT DISTINCT c.Ncli FROM Client c JOIN ACHAT a ON c.Ncli=a.Ncli JOIN Produit p ON a.Np=p.Np WHERE Lib='Lampe';
+
+
+Q10 Dresser la liste des num´eros des clients ayant achet´e des lampes rouges
+NCLI
+----
+101
+105
+103
+
+SELECT DISTINCT Ncli FROM ACHAT a JOIN Produit p ON a.Np=p.Np WHERE Lib='Lampe' AND Coul = 'Rouge';
+
+
+Q11 Dresser la liste des produits (libell´e) dont au moins un achat est de quantit´e sup´erieure ou ´egale `a 13.
+LIB
+----
+Encre
+Lampe
+Agrafeuse
+
+SELECT DISTINCT Lib FROM ACHAT a JOIN Produit p ON a.Np=p.Np WHERE QA>=13;
+
+
+Q12 Dresser la liste des noms des clients qui ont achet´e des crayons de luxe en quantit´e sup´erieure ou ´egale `a 2.
+NOM
+---
+Jamar
+Vilarem
+Defrere
+Garey
+
+SELECT DISTINCT nom FROM Client c JOIN ACHAT a ON c.Ncli=a.Ncli JOIN Produit p ON a.Np=p.Np WHERE Lib='Crayon Luxe' AND QA>= 2;
+
+
+Q13 Num´eros des produits qui ont ´et´e achet´e par au moins deux clients.
+NP
+1
+6
+11
+14
+4
+5
+8
+3
+7
+10
+12
+
+SELECT DISTINCT a.Np FROM Achat a JOIN Achat a2 ON a.Np=a2.Np WHERE a.Ncli!=a2.Ncli;
+
+
+Q14 (⋆) Libell´e et couleur des produits qui ont ´et´e achet´e par au moins deux clients.
+LIB COUL
+-----------------
+Encre Bleu
+Agrafeuse Rouge
+Lampe Rouge
+Lampe Blanc
+Lampe Vert
+Crayon Luxe Vert
+Crayon Luxe Noir
+Lampe Bleu
+Pese-lettre Noir
+Crayon Bleu
+Crayon Luxe Rouge
+
+SELECT DISTINCT Lib,Coul FROM Produit p JOIN Achat a ON a.Np=p.Np JOIN Achat a2 ON a.Np=a2.Np WHERE a.Ncli!=a2.Ncli;
+
+
+Q15 (⋆) Nom des clients qui ont achet´e les produits achet´es par le client 103 (client 103 compris).
+3
+NOM
+----
+Jamar
+Johnson
+Vilarem
+Defrere
+Ullman
+
+SELECT DISTINCT Nom FROM Client c JOIN Achat a ON a.Ncli=c.Ncli JOIN Achat a2 ON a.Np=a2.Np WHERE a2.Ncli=103;
+
+
+Q16 (⋆) Num´ero du produit, dont la quantit´e en stock est maximale.
+NP
+--
+2
+NOM
+----
+Defrere
+Ullman
+4

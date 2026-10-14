@@ -1,0 +1,242 @@
+
+R11 : le nom et le prénom des employés qui travaillent dans le camping ‘Les Flots Bleus’. Les employés doivent être classés par rapport à leur salaire (du mieux payé au moins bien payé).
+NOMEMPLOYE PRENOMEMPLOYE
+----------- --------------
+Deuf John
+Gator Ali
+Croque Odile
+
+SELECT nomemploye, prenomemploye FROM Employes WHERE idCamping = (SELECT idCamping FROM Campings WHERE nomCamping = 'Les Flots Bleus') ORDER BY salaireEmploye DESC
+
+
+
+
+R12 : l'identifiant, le nom et le prénom des clients nés avant l'an 2000 qui ont effectué au moins une location dans un camping qui se trouve à Palavas.
+IDCLIENT NOMCLIENT PRENOMCLIENT
+--------- ----------- -------------
+C10 Nemard Jean
+C2 Zetofrais Mélanie
+C3 Terrieur Alain
+C6 Bricot Judas
+C7 Stico Judas
+C8 Nemard Jean
+
+SELECT DISTINCT c.idClient, nomClient, prenomClient FROM Clients c JOIN Locations l ON l.idClient=c.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow JOIN Campings ca ON ca.idCamping=b.idCamping WHERE dateNaissanceClient < DATE'2000-01-01' AND villeCamping = 'Palavas'
+
+
+
+R13 : le nom des clients qui ont loué au moins un bungalow dont la superficie est inférieure à 40m².
+Les clients doivent être triés par ordre alphabétique.
+NOMCLIENT
+-----------
+Bricot
+Nemard
+Tare
+Terrieur
+Terrieur
+Zeblouse
+Zetofrais
+
+SELECT nomClient FROM Clients c JOIN Locations l ON l.idClient=c.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow  WHERE superficieBungalow < 40 group by nomclient, c.idClient order by nomClient
+
+
+R14 : le nom et le prénom des clients qui habitent dans une ville où il y a un camping.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Nemard Jean
+Bricot Judas
+Nemard Jean
+
+SELECT nomClient,prenomClient FROM Clients Where villeClient IN (SELECT villeCamping FROM Campings)
+
+
+R15 : le nom et le prénom des subordonnés de Gaspard Alizan (c’est à dire des employés qui ont pour chef Gaspard Alizan).
+NOMEMPLOYE PRENOMEMPLOYE
+------------ --------------
+Vesselle Aude
+Niohrangina Nicolas
+
+SELECT nomEmploye, prenomEmploye FROM Employes WHERE idEmployeChef = (SELECT idEmploye FROM Employes WHERE  nomEmploye = 'Alizan' AND prenomEmploye = 'Gaspard')
+
+
+R16 : l'identifiant, le nom et le prénom des clients qui étaient dans le camping ‘Les Flots Bleus’ le 14 juillet 2021 (c'est-à-dire qui ont une location qui couvre le 14 juillet 2021).
+IDCLIENT NOMCLIENT PRENOMCLIENT
+--------- ---------- -------------
+C6 Bricot Judas
+C10 Nemard Jean
+
+SELECT c.idClient,nomClient,prenomClient FROM Clients c JOIN Locations l ON c.idClient=l.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow Where idCamping = (SELECT idCamping FROM Campings WHERE nomCamping = 'Les Flots Bleus') AND dateDebut <= Date'2021-07-14' AND datefin >= Date'2021-07-14'
+
+
+R17 : le nom et le prénom des clients qui ont été dans le camping ‘Les Flots Bleus’ en juillet 2021.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Nemard Jean
+Zetofrais Mélanie
+Bricot Judas
+Stico Judas
+
+SELECT DISTINCT nomClient, prenomClient FROM Clients c JOIN Locations l ON c.idClient=l.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow JOIN Campings ca ON ca.idCamping=b.idCamping WHERE nomCamping = 'Les Flots Bleus' AND dateDebut <= Date'2021-07-31' AND datefin >= Date'2021-07-1'
+
+
+R18 : le nombre de services proposés par le bungalow ‘Le Titanic’.
+NB DE SERVICES
+---------------
+3
+
+SELECT COUNT(*) FROM Bungalows b JOIN  Proposer p ON b.idBungalow=p.idBungalow WHERE nomBungalow = 'Le Titanic' 
+
+
+R19 : le salaire de l’employé le mieux payé du camping ‘Les Flots Bleus’.
+SALAIRE MAX
+------------
+2100
+
+SELECT MAX(salaireEmploye) FROM Employes e JOIN Campings c ON e.idCamping=c.idCamping WHERE nomCamping = 'Les Flots Bleus'
+
+
+R20 : le nombre de campings dans lesquels la cliente Agathe Zeblouse a séjourné.
+NB CAMPINGS
+------------
+1
+
+SELECT COUNT(DISTINCT b.idCamping) FROM Clients c JOIN Locations l ON c.idClient=l.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow WHERE nomClient = 'Zeblouse' AND prenomClient = 'Agathe'
+
+
+R21 : le nom du plus grand bungalow.
+NOMBUNGALOW
+------------------
+La Suite Nuptiale
+
+SELECT nomBungalow FROM Bungalows WHERE superficieBungalow in (SELECT  MAX(superficieBungalow) FROM Bungalows)
+
+
+R22 : le nom et prénom de l’employé le plus mal payé du camping ‘Les Flots Bleus’.
+NOMEMPLOYE PRENOMEMPLOYE
+----------- --------------
+Croque Odile
+
+SELECT nomEmploye, prenomEmploye FROM Employes e JOIN Campings c ON e.idCamping= c.idCamping WHERE salaireEmploye = (SELECT MIN(salaireEmploye) FROM Employes e JOIN Campings c ON e.idCamping= c.idCamping WHERE nomCamping = 'Les Flots Bleus') AND nomCamping = 'Les Flots Bleus'
+
+
+R23 : le nom des bungalows qui ne proposent pas de service.
+NOMBUNGALOW
+--------------
+Le Caniveau
+Le Polymorphe
+
+SELECT nomBungalow FROM Bungalows WHERE idBungalow in
+(SELECT idBungalow FROM Bungalows
+MINUS
+SELECT b.idBungalow FROM Bungalows b JOIN  Proposer p ON b.idBungalow=p.idBungalow)
+
+
+R24 : le nom et prénom des employés qui n’ont pas de subordonné.
+NOMEMPLOYE PRENOMEMPLOYE
+----------- --------------
+Gator Ali
+Croque Odile
+Vesselle Aude
+Triser Jessica
+
+SELECT nomEmploye, prenomEmploye FROM Employes WHERE idEmploye in
+(SELECT idEmploye FROM Employes
+MINUS
+SELECT idEmployeChef FROM Employes)
+
+
+R25 : l'identifiant et le nom des bungalows qui se trouvent dans le camping 'La Décharge
+Monochrome' ainsi que les bungalows qui proposent le service 'Kit de Bain'.
+IDBUNGALOW NOMBUNGALOW
+----------- ------------------
+B1 Le Caniveau
+B12 Le Polymorphe
+B2 Le Palace
+B5 La Poubelle
+B6 La Suite Nuptiale
+
+SELECT idBungalow, nomBungalow FROM Bungalows b JOIN Campings c ON b.idCamping=c.idCamping WHERE nomCamping = 'La Décharge Monochrome'
+UNION
+SELECT b.idBungalow, nomBungalow FROM Bungalows b JOIN Proposer p ON b.idBungalow=p.idBungalow JOIN services s ON s.idService=p.idService WHERE nomService = 'Kit de Bain'
+
+
+R26 : le nom des bungalows qui ne proposent ni le service ‘Climatisation’ ni le service ‘TV’
+NOMBUNGALOW
+--------------
+Le Caniveau
+Le Polymorphe
+L’Impérial
+
+(SELECT idBungalow, nomBungalow FROM Bungalows 
+MINUS
+SELECT b.idBungalow, nomBungalow FROM Bungalows b JOIN Proposer p ON b.idBungalow=p.idBungalow JOIN services s ON s.idService=p.idService WHERE nomService = 'Climatisation')
+MINUS
+SELECT b.idBungalow, nomBungalow FROM Bungalows b JOIN Proposer p ON b.idBungalow=p.idBungalow JOIN services s ON s.idService=p.idService WHERE nomService = 'TV'
+
+
+R27a : le nom et le prénom des clients qui ont effectué une location (au moins) dans le camping ‘Les Flots Bleus’ et dans le camping ‘La Décharge Monochrome’. Les clients doivent être classés dans l’ordre lexicographique de leur nom (et de leur prénom s’ils ont le même nom).
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Bricot Judas
+Tare Guy
+Terrieur Alex
+Zetofrais Mélanie
+
+SELECT nomClient, prenomClient FROM
+(SELECT nomClient, prenomClient, c.idClient FROM Clients c JOIN Locations l ON c.idClient=l.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow JOIN Campings ca ON ca.idCamping=b.idCamping WHERE nomCamping = 'Les Flots Bleus'
+INTERSECT
+SELECT nomClient, prenomClient, c.idClient FROM Clients c JOIN Locations l ON c.idClient=l.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow JOIN Campings ca ON ca.idCamping=b.idCamping WHERE nomCamping = 'La Décharge Monochrome')
+ORDER BY nomClient, prenomClient
+
+
+R27b : le nom et le prénom des clients qui ont effectué une location (au moins) dans le camping ‘Les Flots Bleus’ ou dans le camping ‘La Décharge Monochrome’. Les clients doivent être classés dans l’ordre lexicographique de leur nom (et de leur prénom s’ils ont le même nom).
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Bricot Judas
+Nemard Jean
+Nemard Jean
+Stico Judas
+Tare Guy
+Terrieur Alain
+Terrieur Alex
+Zeblouse Agathe
+Zetofrais Mélanie
+
+SELECT nomClient, prenomClient FROM
+(SELECT nomClient, prenomClient, c.idClient FROM Clients c JOIN Locations l ON c.idClient=l.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow JOIN Campings ca ON ca.idCamping=b.idCamping WHERE nomCamping = 'Les Flots Bleus'
+UNION
+SELECT nomClient, prenomClient, c.idClient FROM Clients c JOIN Locations l ON c.idClient=l.idClient JOIN Bungalows b ON b.idBungalow=l.idBungalow JOIN Campings ca ON ca.idCamping=b.idCamping WHERE nomCamping = 'La Décharge Monochrome')
+ORDER BY nomClient, prenomClient
+
+
+R28 : pour chacun des employés de la table Employés, le nom, le prénom de l’employé ainsi que le nom du camping dans lequel il travaille. Les employés doivent être classés par ordre
+lexicographique de leur nom.
+NOMEMPLOYE PRENOMEMPLOYE NOMCAMPING
+------------ -------------- -------------------------
+Alizan Gaspard La Décharge Monochrome
+Assin Marc Pas affecté à un camping
+Croque Odile Les Flots Bleus
+Deuf John Les Flots Bleus
+Gator Ali Les Flots Bleus
+Gator Ali Pas affecté à un camping
+Kaecouté Xavier Pas affecté à un camping
+Niohrangina Nicolas La Décharge Monochrome
+Triser Jessica La Décharge Monochrome
+Vesselle Aude La Décharge Monochrome
+
+SELECT  nomEmploye, prenomEmploye, nomCamping FROM
+(SELECT idEmploye, nomEmploye, prenomEmploye, nomCamping FROM Employes e JOIN Campings c ON e.idCamping = c.idCamping
+UNION 
+SELECT idEmploye, nomEmploye, prenomEmploye, 'Pas affecté à un camping' FROM Employes
+MINUS
+SELECT idEmploye, nomEmploye, prenomEmploye, 'Pas affecté à un camping' FROM Employes e JOIN Campings c ON e.idCamping = c.idCamping)
+ORDER BY nomEmploye
+
+
+R29 : le nom et le prénom des clients qui ont pu croiser Judas Bricot dans un camping (c'est-à-dire que pendant au moins une journée, ils ont eu une location dans le même camping que Judas Bricot).
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Stico Judas
+Nemard Jean
+Zetofrais Mélanie
+

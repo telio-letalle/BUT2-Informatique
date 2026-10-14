@@ -1,0 +1,101 @@
+Q1 Editer (c.a.d. donner la liste) les libellés des produits:
+SELECT DISTINCT lib FROM produit
+
+Q2 Editer la liste des noms des clients:
+SELECT DISTINCT nom FROM client
+
+Q3 Editer tous les produits dont la quantité en stock est supérieure ou égale à 50:
+SELECT * FROM produit WHERE qs>=50
+
+Q4 Editer tous les achats dont la quantité achetée est strictement supérieure à 12:
+SELECT * FROM achat WHERE qa>12
+
+Q5 Editer les quantités en stock et les couleurs des lampes (i.e. des produits dont le libellé est ’Lampe’):
+SELECT qs,coul FROM Produit WHERE lib='Lampe'
+
+Q6 Editer les numéros des crayons de luxe dont la quantité en stock est supérieure ou égale à 20:
+SELECT np FROM Produit WHERE lib='Crayon Luxe' AND qs>=20
+
+Q7 Editer les numéros des clients ayant fait au moins un achat de quantité supérieure ou égale à 10:
+SELECT DISTINCT c.ncli 
+FROM client c JOIN achat a ON c.ncli=a.ncli
+WHERE qa>=10
+
+Q8 Editer les numéros des clients dont le nom commence par un J et contient la lettre a:
+SELECT ncli FROM client WHERE nom LIKE 'J%a%'
+
+Q9 Dresser la liste des numéros des clients qui ont acheté des lampes:
+SELECT DISTINCT ncli 
+FROM Achat a JOIN Produit p ON a.np=p.np
+WHERE lib='Lampe'
+
+Q10 Dresser la liste des numéros des clients ayant acheté des lampes rouges:
+SELECT DISTINCT ncli 
+FROM Achat a JOIN Produit p ON a.np=p.np
+WHERE lib='Lampe' AND coul = 'Rouge'
+
+Q11 Dresser la liste des produits (libellé) dont au moins un achat est de quantité supérieure ou égale à 13:
+SELECT DISTINCT lib 
+FROM Achat a JOIN Produit p ON a.np=p.np
+WHERE qa >= 13
+
+Q12 Dresser la liste des noms des clients qui ont acheté des crayons de luxe en quantité supérieure ou égale à 2:
+SELECT DISTINCT nom
+FROM Achat a JOIN Produit p ON a.np=p.np JOIN client c ON a.ncli=c.ncli
+WHERE lib='Crayon Luxe' AND qa >= 2
+
+Q13 Nunéros des clients n’ayant pas acheté de crayon:
+SELECT ncli FROM Client
+MINUS 
+SELECT DISTINCT c.ncli
+FROM Achat a JOIN Produit p ON a.np=p.np 
+JOIN client c ON a.ncli=c.ncli
+WHERE lib = 'Crayon'
+
+Q14 Nom et numéro des clients ayant fait des achats (au moins un ) et toujours fait des achats dont la quantité est supérieure (strict) à 3:
+SELECT c.nom, c.ncli FROM Client c JOIN Achat a ON a.ncli=c.ncli 
+MINUS 
+SELECT DISTINCT c.nom, c.ncli
+FROM Achat a JOIN Produit p ON a.np=p.np 
+JOIN client c ON a.ncli=c.ncli
+WHERE qa<=3
+
+Q15 Numéro des produits qu’aucun client n’a acheté:
+SELECT np FROM Produit
+MINUS SELECT np FROM Achat
+
+Q16 Nom et numéro des clients ayant acheté une Lampe et une Agrafeuse:
+SELECT c.nom, c.ncli 
+FROM Achat a JOIN Produit p ON a.np=p.np 
+JOIN client c ON a.ncli=c.ncli
+WHERE lib='Lampe'
+INTERSECT
+SELECT c.nom, c.ncli 
+FROM Achat a JOIN Produit p ON a.np=p.np 
+JOIN client c ON a.ncli=c.ncli
+WHERE lib='Agrafeuse'
+
+Q17 Nom et numéro des clients ayant acheté tous les produits:
+SELECT nom, ncli
+FROM client
+MINUS
+SELECT nom, ncli
+FROM (SELECT nom, c.ncli, np FROM Client c ,Achat
+MINUS
+(SELECT c.nom, c.ncli, p.np
+FROM Achat a JOIN Produit p ON a.np=p.np 
+JOIN client c ON a.ncli=c.ncli))
+
+Q19 Numéros des produits qui ont été acheté par au moins deux clients:
+SELECT DISTINCT a.np
+FROM Achat a JOIN Achat a2 ON a.np=a2.np
+WHERE a.ncli != a2.ncli
+
+Q20 (⋆) Libellé et couleur des produits qui ont été acheté par au moins deux clients:
+SELECT DISTINCT lib,coul
+FROM Achat a JOIN Produit p ON a.np=p.np
+JOIN Achat a2 ON a.np=a2.np
+WHERE a.ncli != a2.ncli
+
+Q21 (⋆) Numéro du produit, dont la quantité en stock est maximale:
+

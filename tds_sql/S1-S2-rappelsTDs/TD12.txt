@@ -1,0 +1,109 @@
+TD12
+
+DROP TABLE Livraison;
+DROP TABLE Tournnee;
+DROP TABLE Colis;
+DROP TABLE Véhicule;
+
+CREATE TABLE Vehicule
+(immatriculation VARCHAR(9) NOT NULL,
+charge_utile INTEGER ,
+CONSTRAINT pk_immatriculation PRIMARY KEY (immatriculation),
+CONSTRAINT charge_utile_positive CHECK(charge_utile > 300));
+
+CREATE TABLE Colis
+(num_colis NUMBER NOT NULL,
+poids INTEGER NOT null,
+CONSTRAINT pk_num_colis PRIMARY KEY (num_colis),
+CONSTRAINT poids_positive CHECK(poids > 0));
+
+CREATE TABLE Tournee(
+id_tour INTEGER PRIMARY KEY,
+livreur varchar(60) NOT NULL,
+immatriculation VARCHAR(9) not null,
+date_tournee DATE NOT NULL,
+CONSTRAINT fk_tournee_immatriculation_ FOREIGN KEY (immatriculation) REFERENCES Vehicule(immatriculation))
+
+CREATE TABLE Livraison(
+id_tour INTEGER,
+num_colis INTEGER,
+adresse varchar(60) NOT NULL,
+heure INTEGER,
+CONSTRAINT heure_valide CHECK (6<heure and heure<20),
+CONSTRAINT fk_livraison_num_colis FOREIGN KEY (num_colis) REFERENCES  Colis(num_colis),
+CONSTRAINT fk_livraison_id_tour FOREIGN KEY (id_tour) REFERENCES  Tournee(id_tour),
+CONSTRAINT pk_livraison PRIMARY KEY (id_tour,num_colis));
+
+Q4 Quels sont les véhicules utilisés pour livrer des colis dont le poids est supérieur à 100 kg ?
+SELECT DISTINCT immatriculation FROM tournee t JOIN livraison l ON l.id_tour=t.id_tour JOIN colis c ON c.num_colis = l.num_colis WHERE poids > 100;
+
+Q5 Qui et avec quel véhicule à livré le colis numéro 4 ?
+SELECT livreur, immatriculation FROM tournee t JOIN livraison l ON l.id_tour=t.id_tour WHERE num_colis = 4;
+
+Q6 A quelle adresse, quel jour et quel heure a été livré le colis numéro 2 ?
+SELECT adresse, date_tournee, heure FROM tournee t JOIN livraison l ON l.id_tour=t.id_tour WHERE num_colis = 2;
+
+Q7 A quelle date et heure a été livré le colis le plus lourd ?
+SELECT date_tournee, heure FROM tournee t JOIN livraison l ON l.id_tour=t.id_tour JOIN colis c ON c.num_colis=l.num_colis WHERE poids =(SELECT MAX(Poids) FROM colis);
+
+Q8 (⋆) Livreurs n’ayant jamais livré un colis avant 10 heures ?
+SELECT livreur FROM livraison l JOIN colis c ON c.num_colis=l.num_colis JOIN tournee t ON l.id_tour = t.id_tour 
+MINUS
+SELECT DISTINCT livreur FROM livraison l JOIN colis c ON c.num_colis=l.num_colis JOIN tournee t ON l.id_tour = t.id_tour 
+WHERE heure < 10;
+
+Q9 Pour chaque adresse, le poids max des colis livrés (à cette adresse) ?
+SELECT DISTINCT adresse, MAX(poids) FROM livraison l JOIN colis c ON c.num_colis=l.num_colis GROUP BY adresse
+
+Q10 Noms des livreurs ayant conduit le vehicule ’AA-000-AA’, triés par ordre alphabétique ?
+SELECT livreur FROM tournee WHERE immatriculation = 'AA-000-AA' ORDER BY livreur;
+
+Q11 Charge utile moyenne des véhicules de l’entreprise ?
+SELECT AVG(charge_utile) FROM vehicule;
+
+Q12 Nombre d’adresses différentes (renommé en nb_adresses) ?
+SELECT COUNT(DISTINCT adresse) AS nb_adresse FROM livraison;
+
+Q13 (⋆) Quels sont les livreurs qui ont déjà conduit tous les véhicules de l’entreprise ?
+SELECT livreur FROM (SELECT livreur, COUNT(DISTINCT immatriculation) AS nb FROM tournee GROUP BY livreur) WHERE  nb = (SELECT COUNT(DISTINCT immatriculation) FROM vehicule);
+
+SELECT livreur FROM tournee
+GROUP BY livreur
+HAVING COUNT(DISTINCT immatriculation) = (SELECT COUNT(DISTINCT immatriculation) FROM vehicule);
+
+Q14 Date à laquelle le nombre de colis livrés est supérieur ou égal à 10 ?
+SELECT DISTINCT date_tournee FROM tournee t JOIN livraison l ON t.id_tour = l.id_tour GROUP BY date_tournee HAVING COUNT(DISTINCT num_colis) >=10;
+
+Q15 (⋆) Quels sont les livreurs ayant déjà effectués une tournée avec un véhicule en surcharge (somme des
+poids des colis livrés dans la tournée supérieure à la charge utile du véhicule utilisé pour cette tournée) ?
+SELECT DISTINCT livreur FROM tournee t JOIN livraison l ON t.id_tour = l.id_tour JOIN colis c ON c.num_colis=l.num_colis JOIN vehicule v ON v.immatriculation=t.immatriculation GROUP BY t.id_tour,livreur,charge_utile HAVING SUM(poids) > charge_utile;
+
+DROP TABLE Dormir;
+DROP TABLE Vendeurs;
+DROP TABLE Hotels;
+
+CREATE TABLE Hotels
+(numHotel INTEGER NOT NULL,
+nom VARCHAR(40) NOT NULL,
+villeHotel VARCHAR(40) NOT NULL,
+prixChambre NUMBER NOT NULL,
+CONSTRAINT pk_Hotels PRIMARY KEY (numHotel));
+
+CREATE TABLE Vendeurs
+(codeVendeur INTEGER NOT NULL,
+nom VARCHAR(40) NOT NULL,
+prenom VARCHAR(40) NOT NULL,
+ville VARCHAR(40) NOT NULL,
+salaire NUMBER NOT NULL,
+codeVendeurChef INTEGER NOT NULL,
+CONSTRAINT fk_Vendeurs_codeVendeurChef FOREIGN KEY (codeVendeurChef) REFERENCES Vendeurs(codeVendeur),
+CONSTRAINT pk_Vendeurs PRIMARY KEY (codeVendeur));
+
+CREATE TABLE Dormir
+(codeVendeur INTEGER NOT NULL,
+dateDormir VARCHAR(40) NOT NULL,
+numHotel INTEGER NOT NULL,
+CONSTRAINT dateDormir CHECK DATE CURENT(dateDormir),
+CONSTRAINT fk_Dormir_codeVendeur FOREIGN KEY (codeVendeur) REFERENCES Vendeurs(codeVendeur);
+CONSTRAINT fk_Dormir_ FOREIGN KEY (codeVendeur) REFERENCES Vendeurs(codeVendeur);
+CONSTRAINT pk_Dormir PRIMARY KEY (codeVendeur,dateDormir));

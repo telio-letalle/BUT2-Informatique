@@ -1,0 +1,130 @@
+BD2ex10
+
+1) Vue BungalowsLFB
+o Créer une vue BungalowsLFB qui contient toutes les informations qui concernent les
+bungalows qui se trouvent dans le camping ‘Les Flots Bleus’. Cette vue doit avoir la
+structure suivante :
+BUNGALOWSLFB (idBungalow, nomBungalow, superficieBungalow)
+SELECT *
+FROM BungalowsLFB ;
+IDBUNGALOW NOMBUNGALOW SUPERFICIEBUNGALOW
+----------- -------------- -------------------
+B2 Le Palace 60
+B3 Le Royal 65
+B4 Le Titanic 35
+B8 L’Impérial 40
+B11 Le Polymorphe 45
+
+CREATE OR REPLACE VIEW BUNGALOWSLFB (idBungalow, nomBungalow, superficieBungalow) AS
+SELECT idBungalow, nomBungalow, superficieBungalow FROM BUNGALOWS b JOIN CAMPINGS c ON C.idCamping = b.idCamping WHERE nomCamping = 'Les Flots Bleus'
+
+
+o Ecrire une requête SQL qui, en utilisant la vue BungalowsLFB, retourne le nombre de
+bungalows qui se trouvent dans le Camping ‘Les Flots Bleus’.
+NB BUNGALOWS
+-------------
+5
+
+SELECT count(*)
+FROM BungalowsLFB ;
+
+
+2) Vue LocationsLFB
+o En utilisant la vue BungalowsLFB créée précédemment, écrire une vue
+LocationsLFB qui contient les locations qui ont été réalisées dans le camping ‘Les Flots
+Bleus’. Cette vue doit avoir la structure suivante :
+LOCATIONSLFB (idLocation, idClient, nomClient, prenomClient, idBungalow, nomBungalow)
+SELECT *
+FROM LocationsLFB ;
+IDLOCATION IDCLIENT NOMCLIENT PRENOMCLIENT IDBUNGALOW NOMBUNGALOW
+----------- --------- ---------- ------------- ----------- --------------
+L18 C2 Zetofrais Mélanie B11 Le Polymorphe
+L10 C2 Zetofrais Mélanie B4 Le Titanic
+L8 C4 Terrieur Alex B3 Le Royal
+L6 C5 Tare Guy B2 Le Palace
+L7 C6 Bricot Judas B2 Le Palace
+L9 C7 Stico Judas B3 Le Royal
+L17 C10 Nemard Jean B8 L’Impérial
+
+CREATE OR REPLACE VIEW LOCATIONSLFB (idLocation, idClient, nomClient, prenomClient, idBungalow, nomBungalow) AS
+SELECT idLocation, l.idClient, nomClient, prenomClient, b.idBungalow, nomBungalow FROM BUNGALOWSLFB b JOIN Locations l ON l.idBungalow= b.idBungalow JOIN Clients c ON c.idClient=l.idClient;
+
+
+o Ecrire une requête SQL qui, en utilisant la vue LocationsLFB, retourne pour chacun des
+bungalows du camping ‘Les Flots Bleus’ qui ont été loués, le nombre de locations.
+IDBUNGALOW NOMBUNGALOW NBLOCATIONS
+----------- -------------- ------------
+B11 Le Polymorphe 1
+B3 Le Royal 2
+B8 L’impérial 1
+B4 Le Titanic 1
+B2 Le Palace 2
+
+SELECT idBungalow, nombungalow, COUNT(*)
+FROM LocationsLFB GROUP BY  idBungalow, nombungalow;
+
+
+3) Vue LocationsBungalows
+o Créer une vue LocationsBungalows qui contient, pour tous les bungalows de la table
+Bungalows, toutes les informations sur le bungalow ainsi que son nombre de locations,
+son chiffre d’affaires CA, et son chiffre d’affaires moyen par location CAML
+(correspondant à CA / nbLocations). Cette vue doit avoir la structure suivante :
+LOCATIONSBUNGALOWS (idBungalow, nomBungalow, idCamping, nomCamping,
+superficieBungalow, nbLocations, CA, CAML)
+SELECT * FROM LocationsBungalows
+WHERE idCamping = 'CAMP2';
+IDBUNGALOW NOMBUNGALOW IDCAMPING NOMCAMPING SUPERFI NBLOCATIONS CA CAML
+---------- ----------- --------- ---------- ------- ----------- -- ----
+B1 Le Caniveau CAMP2 La Décharge Monochrome 30 5 4200 840
+B12 Le Polymorphe CAMP2 La Décharge Monochrome 40 0 0
+B5 La Poubelle CAMP2 La Décharge Monochrome 35 4 2910 727,5
+
+CREATE OR REPLACE VIEW LOCATIONSBUNGALOWS (idBungalow, nomBungalow, idCamping, nomCamping, superficieBungalow, nbLocations, CA, CAML) AS
+SELECT b.idBungalow, nomBungalow, b.idCamping, nomCamping, superficieBungalow, COUNT(*) AS nbLocations, SUM(montantLocation) AS CA,AVG(Distinct montantLocation) AS CAML FROM BUNGALOWS b JOIN Campings c ON c.idCamping= b.idCamping JOIN Locations l ON l.idBungalow=b.idBungalow GROUP BY b.idBungalow, nomBungalow, b.idCamping, nomCamping, superficieBungalow;
+
+
+4) Vue ServicesBungalows
+o Créer une vue ServicesBungalows qui contient, pour tous les bungalows de la table
+Bungalows, toutes les informations sur le bungalow ainsi que le nombre de services et
+de catégories de services qu’il propose.
+SERVICESBUNGALOWS (idBungalow, nomBungalow, idCamping, nomCamping,
+superficieBungalow, nbServices, nbCategoriesServices)
+SELECT * FROM ServicesBungalows
+WHERE superficieBungalow < 40;
+IDBUNGALOW NOMBUNGALOW IDCAMPING NOMCAMPING SUPERFI NBSERVICES NBCATEGORIESSERV
+----------- -------------- ---------- ----------------------- -------- ----------- -----------------
+B4 Le Titanic CAMP1 Les Flots Bleus 35 3 2
+B1 Le Caniveau CAMP2 La Décharge Monochrome 30 0 0
+B5 La Poubelle CAMP2 La Décharge Monochrome 35 2 2
+5) Vue DonneesBungalows
+o Créer une vue DonneesBungalows contenant les données des deux précédentes vues.
+SELECT * FROM DonneesBungalows
+WHERE idCamping = 'CAMP2';
+IDBUNG NOMBUNGALOW IDCAMPING NOMCAMPING SUP NBLOC CA CAML NBSERVICES NBCAT
+------- --------------- ---------- ----------------------- ---- ------ ----- ------ ----------- ------
+B1 Le Caniveau CAMP2 La Décharge Monochrome 30 5 4200 840 0 0
+B12 Le Polymorphe CAMP2 La Décharge Monochrome 40 0 0 0 0
+B5 La Poubelle CAMP2 La Décharge Monochrome 35 4 2910 727,5 2 2
+o En utilisant la vue précédente, écrire une requête qui retourne le nom et la superficie des
+bungalows qui proposent plus de deux services mais qui n’ont pas été loués.
+o Ecrire une requête qui retourne le nom du bungalow qui a le plus de locations.
+o Savez-vous toujours faire une division ? Ecrire une requête qui retourne le nom des
+bungalows qui proposent tous les services.
+6) Vue DonneesCampings
+o Créer une vue DonneesCampings contenant des données sur les services et les locations
+des différents campings. Cette vue doit avoir la structure suivante :
+DONNESCAMPINGS (idCamping, nomCamping, villeCamping, nbEtoilesCamping,
+nbBungalows, superficieMoyenneBungalows, nbLocations, CA,
+CAML, nbServives, nbCategoriesServices
+Pour réaliser cette vue, on pourra créer des vues intermédiaires. Et on arrondira le CAML.
+SELECT * FROM DonneesCampings;
+IDCAMP NOMCAMPING VILLECAMPING NBETOILES NBBUNG SUPMOYBUNG NBLOC CA CAML NBSERV NBCAT
+------- ---------------- ---------------- ---------- ------- ----------- ------ ------ ----- ------- ------
+CAMP1 Les Flots Bleus Palavas 5 5 49 7 10060 1437 6 3
+CAMP2 La Décharge … Palavas 1 3 35 9 7110 790 2 2
+CAMP3 The White … La Grande Motte 5 4 72,5 2 2030 1015 4 3
+7) Vue DonneesCampingsPlus
+o Réaliser une vue DonneesCampingsPlus contenant toutes les données de la vue
+DonneesCampings auxquelles vous rajouterez deux colonnes indiquant le nombre de
+bungalows loués et le nombre de bungalows non loués (le camping CAMP1 a 5
+bungalows loués et 0 non-loué ; 2 et 1 pour le CAMP2 et 1 et 3 pour le CAMP3).

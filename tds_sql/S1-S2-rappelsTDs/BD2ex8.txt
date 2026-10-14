@@ -1,0 +1,33 @@
+BD2ex8
+
+R110 : le nom des services qui sont proposés dans tous les bungalows dont la superficie est supérieure
+à 60 m².
+SELECT nomService FROM SERVICES s JOIN Proposer p ON s.idService = p.idService JOIN Bungalows b ON b.idBungalow=p.idBungalow WHERE superficieBungalow > 60 GROUP BY nomService,s.idService 
+HAVING COUNT(*) = (SELECT COUNT(*) FROM Bungalows WHERE superficieBungalow > 60);
+
+v2:
+SELECT nomService FROM SERVICES s 
+WHERE NOT EXISTS (
+SELECT b1.idBungalow FROM Bungalows b1 WHERE superficieBungalow>60
+minus
+SELECT b.idBungalow FROM Services s2 JOIN Proposer p ON s2.idService = p.idService JOIN Bungalows b ON b.idBungalow=p.idBungalow WHERE superficieBungalow > 60 AND s2.idService = s.idService);
+
+
+R111 : le numéro, le nom et le prénom des clients qui n’ont jamais fait de location dans un camping
+de Palavas. Les clients doivent être classés par ordre lexicographique de leur nom.
+SELECT cl.idClient, nomClient, PrenomClient FROM Clients cl
+WHERE NOT EXISTS( 
+SELECT * FROM Locations l JOIN Bungalows b ON b.idBungalow = l.idBungalow JOIN Campings c ON c.idCamping=b.idCamping WHERE c.villeCamping = 'Palavas' AND cl.idClient=l.idClient) ORDER BY nomClient;
+
+
+R112 : le nom des services proposés par le bungalow le plus grand du camping ‘Les Flots Bleus’.
+???
+SELECT nomService FROM Services s 
+JOIN Proposer p ON p.idService = s.idService 
+JOIN Bungalows b ON b.idBungalow = p.idBungalow 
+JOIN Campings c ON c.idCamping = b.idCamping 
+WHERE nomCamping = "Les Flots Bleus"
+GROUP BY nomService
+HAVING MAX(superficieBungalow) = (
+Select MAX(SuperficieBungalow) FROM Bungalows b1 JOIN Campings c ON c.idCamping = b.idCamping WHERE nomCamping = "Les Flots Bleus");
+???

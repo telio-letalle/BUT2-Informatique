@@ -1,0 +1,161 @@
+ MIDI’HOME CAMPING™ – Les groupements (GROUP BY – HAVING)
+CAMPINGS (idCamping, nomCamping, villeCamping, nbEtoilesCamping)
+BUNGALOWS (idBungalow, nomBungalow, superficieBungalow, idCamping#)
+SERVICES (idService, nomService, categorieService)
+PROPOSER (idBungalow#, idService#)
+CLIENTS (idClient, nomClient, prenomClient, dateNaissanceClient, villeClient)
+LOCATIONS (idLocation, idClient#, idBungalow#, dateDebut, dateFin, montantLocation)
+EMPLOYES (idEmploye, nomEmploye, prenomEmploye, salaireEmploye, idCamping#, idEmployeChef#)
+
+Réaliser sous Oracle les requêtes suivantes :
+
+R6A : pour chaque catégorie de service, le nombre de services.
+CATEGORIESERVICE NB SERVICES
+---------- ------ ------------
+Luxe 2
+Loisir 2
+Inutile 2
+
+SELECT categorieService, COUNT(*) FROM Services GROUP BY categorieService
+
+
+R6B : le nom des villes pour lesquelles on a au moins trois clients.
+VILLECLIENT
+------------
+Montpellier
+
+SELECT villeClient FROM CLIENTS GROUP BY villeClient HAVING COUNT(*)>=3
+
+
+R6C : pour chacun des campings pour lesquels on a au moins un employé, indiquer le salaire moyen des employés qui travaillent dans le camping.
+NOMCAMPING SALAIRE MOYEN
+----------------------- --------------
+Les Flots Bleus 1650
+La Décharge Monochrome 1212.5
+
+SELECT c.nomCamping, AVG(salaireEmploye) FROM CAMPINGS c JOIN EMPLOYES e ON c.idcamping=e.idcamping GROUP BY c.nomCamping;
+
+
+R6D : le nom des campings qui possèdent plus de 3 employés.
+NOMCAMPING
+-----------------------
+La Décharge Monochrome
+
+SELECT nomCamping FROM CAMPINGS c JOIN EMPLOYES e ON c.idcamping=e.idcamping GROUP BY c.nomCamping HAVING COUNT(*)>3
+
+
+R60 : pour chacun des clients qui a réalisé au moins une location, indiquer son nom, son prénom et le nombre de ses locations (les clients doivent être classées par ordre décroissant du nombre de locations). Il n’est pas demandé de faire apparaître les clients qui n’ont pas réalisé de location.
+NOMCLIENT PRENOMCLIENT NB LOCATIONS
+---------- ------------- -------------
+Zetofrais Mélanie 4
+Tare Guy 3
+Bricot Judas 2
+Nemard Jean 2
+Zeblouse Agathe 2
+Terrieur Alex 2
+Nemard Jean 1
+Stico Judas 1
+Terrieur Alain 1
+
+SELECT nomClient, prenomClient, COUNT(*) FROM CLIENTS c JOIN LOCATIONS l ON c.idClient=l.idClient GROUP BY c.idClient, nomClient, prenomClient ORDER BY COUNT(*) DESC
+
+
+R61 : le nom des campings dont le salaire moyen des employés est supérieur à 1 400€.
+NOMCAMPING
+----------------
+Les Flots Bleus
+
+SELECT nomCamping FROM CAMPINGS c JOIN EMPLOYES e ON c.idCamping=e.idCamping GROUP BY c.idCamping, nomCamping HAVING AVG(salaireEmploye) > 1400 
+
+
+R62 : le nom et le prénom des clients qui ont réalisé des locations dans 2 campings.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Bricot Judas
+Nemard Jean
+Terrieur Alex
+Zetofrais Mélanie
+
+SELECT nomClient, prenomClient FROM CLIENTS c JOIN LOCATIONS l ON c.idClient=l.idClient JOIN BUNGALOWS b ON b.idBungalow=l.idBUNgalow GROUP BY c.idClient, nomClient, prenomClient HAVING COUNT(DISTINCT idCamping) = 2
+
+
+IUT Montpellier – Informatique – 1A 2025-2026
+BD2 10
+
+R63 : le nombre de services proposés par chacun des bungalows ; on veut également afficher les bungalows qui ne proposent pas de service. Les bungalows doivent être classés par rapport au nombre de services proposés.
+NOMBUNGALOW NB SERVICES
+------------------------ ------------
+Le Palace 6
+La Suite Nuptiale 4
+Le Titanic 3
+Le Royal 3
+La Suite Régalienne 2
+La Suite Présidentielle 2
+L’Impérial 2
+La Poubelle 2
+Le Polymorphe 1
+La Suite Monarchique 1
+Le Polymorphe 0
+Le Caniveau 0
+
+SELECT nomBungalow, COUNT(DISTINCT idService) FROM BUNGALOWS b LEFT JOIN PROPOSER p On b.idBungalow=p.idBUNgalow GROUP BY b.idBungalow, nomBungalow ORDER BY COUNT(DISTINCT idService) DESC
+
+
+R64 : la liste des campings, classés par rapport au nombre de bungalows de moins de 65 m² qu’ils possèdent (de celui qui en a le moins à celui qui en a le plus).
+NOMCAMPING
+-----------------------
+The White Majestic
+La Décharge Monochrome
+Les Flots Bleus
+
+SELECT nomCamping FROM CAMPINGS c JOIN BUNGALOWS b On b.idCamping=c.idCamping WHERE superficieBungalow < 65 GROUP BY b.idCamping, nomCamping ORDER BY COUNT(*)
+
+
+R65 : le nom des campings où tous les employés ont un salaire supérieur ou égal à 1 000 €.
+NOMCAMPING
+----------------
+Les Flots Bleus
+
+SELECT DISTINCT nomCamping FROM CAMPINGS c JOIN EMPLOYES e ON e.idCamping=c.idCamping 
+MINUS
+SELECT nomCamping FROM CAMPINGS c JOIN EMPLOYES e ON e.idCamping=c.idCamping WHERE salaireEmploye < 1000
+
+
+R66 : le nom des bungalows qui proposent le même nombre de services que le bungalow qui se
+nomme ‘Le Royal’ (il n’y a qu’un seul Bungalow ‘Le Royal’).
+NOMBUNGALOW
+------------
+Le Royal
+Le Titanic
+
+SELECT nomBungalow FROM BUNGALOWS b JOIN PROPOSER p On b.idBungalow=p.idBUNgalow GROUP BY b.idBungalow, nomBungalow HAVING COUNT(Distinct idService) = (SELECT COUNT(Distinct idService) FROM BUNGALOWS b JOIN PROPOSER p On b.idBungalow=p.idBUNgalow WHERE nomBungalow = 'Le Royal')
+
+
+R67 : pour chacun des bungalows du camping ‘La Décharge Monochrome’, indiquer le nom du
+bungalow ainsi que le nombre de locations qui concernent le bungalow. Les bungalows
+doivent être classées par rapport à leur nombre de locations.
+NOMBUNGALOW NB LOCATIONS
+-------------- -------------
+Le caniveau 5
+La Poubelle 4
+Le Polymorphe 0
+
+SELECT nomBungalow, COUNT(Distinct idLocation) FROM CAMPINGS c JOIN BUNGALOWS b On b.idCamping=c.idCamping LEFT JOIN LOCATIONS l ON b.idBungalow=l.idBungalow WHERE nomCamping = 'La Décharge Monochrome' GROUP BY b.idBungalow, nomBungalow ORDER BY COUNT(Distinct idLocation) DESC
+
+
+R68 : le nom et le prénom des clients qui ont plusieurs locations et dont la moyenne des montants de ces locations est supérieure à 1100 €.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Nemard Jean
+Terrieur Alex
+
+SELECT nomClient, prenomClient FROM CLIENTS c JOIN LOCATIONS l ON c.idClient=l.idClient GROUP BY c.idClient, nomClient, prenomClient HAVING AVG(DISTINCT montantLocation) > 1100 AND COUNT(*) > 1
+
+
+R69 : le bungalow qui propose le plus de services.
+NOMBUNGALOW
+------------
+Le Palace
+
+SELECT nomBungalow FROM BUNGALOWS b JOIN PROPOSER p ON b.idBungalow=p.idBungalow GROUP BY b.idBungalow, nomBungalow HAVING COUNT(*) = MAX(idService);
+??????????

@@ -1,0 +1,139 @@
+a. insérer dans la relation produit un nouveau produit de numéro 20 correspondant `a un cahier blanc dont on dispose de 100 exemplaires.
+
+INSERT INTO produit VALUES (20, 'cahier', 'blanc',100);
+
+
+b. insérer un nouveau produit dans la relation produit de numéro 21 correspondant `a une gomme dont on dispose de 500 exemplaires (on ne connait pas sa couleur). (Utiliser la syntaxe présentée `a l’exemple ??).
+
+INSERT INTO produit(np,lib,qs) VALUES (21, 'gomme', 100);
+
+
+c. essayer d’insérer dans la relation produit un nouveau produit de libellé ”trombone”, de couleur ”gris”, disponible en 1000 exemplaires mais sans préciser de numéro.
+
+d. (⋆) tenter d’insérer `a nouveau le produit de la question 1.
+— Pourquoi c¸a ne marche pas ? car existe deja
+— Aider vous du nom de la contrainte violée pour comprendre.
+e. insérer dans la relation achat un nouvel achat du client 101 pour le produit 20 de quantité 12.
+
+INSERT INTO achat VALUES (101, 20, 12);
+
+
+a. supprimez de la relation produit le tuple concernant le produit 21.
+
+DELETE FROM produit WHERE np = 21;
+
+
+b. tentez de faire la même chose pour le produit 20.
+— Pourquoi c¸a ne marche pas ? (Le nom de la contrainte violée doit vous aider ) car relié a un autre table
+— Que devez vous faire préalablement ? supp sur achat
+c. supprimez de la relation achat tous les achats dont la quantité achetée est inférieure (stricte) `a 5.
+
+DELETE FROM achat WHERE qa < 5;
+
+
+d. supprimez de la relation achat tous les achats du client Ullman (sans utiliser directement son ncli). Il faudra utiliser une requête imbriquée. Les étapes ci-dessous sont facultatives,juste là pour vous aidez.
+— écrivez la requˆete qui récup`ere le numéro de client de Ullman
+
+SELECT ncli FROM Client WHERE nom = 'Ullman';
+
+— écrivez la requˆete ”comme si” vous connaissiez par coeur le numéro de client de Ullman
+
+DELETE FROM achat WHERE nom ='Ullman';
+
+
+— (⋆) remplacez ce numéro de client par une la sous requˆete ci-dessus.
+
+DELETE FROM achat WHERE ncli IN (SELECT ncli FROM Client WHERE nom = 'Ullman');
+
+
+a. augmenter de 10 la quantité d’agrafeuses achetées par Defrere.
+
+UPDATE achat SET qa = qa +10 WHERE np IN (SELECT np FROM produit WHERE lib = 'Agrafeuse') AND ncli IN (SELECT ncli FROM Client WHERE nom = 'Defrere');
+
+
+b. augmenter simultanément la quantité en stock de 10 et modifier en jaune la couleur des crayons de luxe rouges.
+
+UPDATE produit SET qs = qs +10, coul='Jaune' WHERE lib = 'Crayon Luxe' AND coul = 'Rouge';
+
+
+c. (⋆) augmenter de 2 toutes les quantités achetées des achats effectués par Defrere.
+
+UPDATE achat SET qa = qa +2 WHERE ncli IN (SELECT ncli FROM Client WHERE nom = 'Defrere');
+
+
+d. essayer de remplacer le numéro de produit 10 par le numéro 30. Que se passe-t-il ? peut pas
+a. ajouter à la relation client un attribut adr (adresse) de type chaîne de caractères de longueur 40 max.
+
+ALTER TABLE client ADD adr VARCHAR(40);
+
+
+b. modifier le type de l’attribut adr de la relation client pour accepter des chaˆınes de 80 caract`eres max.
+
+ALTER TABLE client MODIFY adr VARCHAR(80);
+
+
+c. ajouter ’Montpellier’ comme adresse `a tous les clients. (Attention, ceci est une modification de tuple, pas une modification de la table).
+
+UPDATE client SET adr = 'Montpellier';
+
+
+d. (⋆) faire en sorte que tous les futurs clients aient ’Mende’ comme adresse par défaut.
+
+ALTER TABLE client MODIFY adr DEFAULT 'Mende';
+
+
+e. tester en créant un nouveau client sans lui spécifier d’adresse.
+
+INSERT INTO client(ncli,nom) VALUES (22,'bob')
+
+
+a. créer une relation correspondant au schéma de relation suivant : FOURNISSEUR(nf, nom, adr) avec nf :
+numéro de fournisseur (entier) clé primaire nom et adr : nom et adresse du fournisseur de type chaˆıne de caract`eres (taille max 40). Ces attributs sont obligatoires.
+
+CREATE TABLE fournisseur
+(nf INTEGER NOT NULL,
+nom VARCHAR(40) NOT NULL,
+adr VARCHAR(40) NOT NULL,
+CONSTRAINT pk_fournisseur PRIMARY KEY(nom,adr));
+
+
+b. (⋆) créer une relation correspondant au schéma de relation suivant : REAP(#nf,#np,date reap, qr) qui spécifie pour un fournisseur donné, un produit donné à une date donnée, une quantité de réapprovisionnement obligatoire (non nulle et positive). Par défaut [default] (ie. si la date n’est pas précisée lors de l’insertion d’un tuple), la date est la date courante [current date].
+
+
+
+
+NF
+-----
+1003
+1001
+1002
+Q2 Quels sont les noms de fournisseurs qui ont déj`a rapprovisionné des ’Lampe’ et des ’Agrafeuse’ ?
+NOM
+------
+Bureau Valle
+Q3 Quels sont les fournisseurs qui n’ont jamais réapprovisionné de ’Lampe’ ?
+NOM
+-------
+NADA
+Q4 Quels sont les fournisseurs qui n’ont plus réapprovisionné depuis le ’02/02/2020’ ?
+NOM
+-----
+BIC
+NADA
+Q5 (⋆) Quels sont les numéros de fournisseurs qui ont déj`a rapprovisionné (au moins) deux produits différents ?
+NF
+---
+1003
+1001
+Q6 Quels sont les numéros des produits qui ont déj`a réapprovisionné (au moins) deux fois ?
+Attention : deux réapprovisionnements peuvent différer par la date ou par le fournisseur.
+NP
+----
+1
+7
+9
+Q7 (⋆) Quels sont les produits qui ont déj`a rapprovisionné (au moins) deux fois par des fournisseurs différents
+et en quantité supérieure `a 50 ?
+NP
+---
+7

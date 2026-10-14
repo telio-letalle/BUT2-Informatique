@@ -1,0 +1,36 @@
+BDex10
+
+1) Vue BungalowsLFB
+o Créer une vue BungalowsLFB qui contient toutes les informations qui concernent les
+bungalows qui se trouvent dans le camping ‘Les Flots Bleus’. Cette vue doit avoir la
+structure suivante :
+BUNGALOWSLFB (idBungalow, nomBungalow, superficieBungalow)
+
+CREATE OR REPLACE VIEW BungalowsLFB (idBungalow, nomBungalow, superficieBungalow) AS SELECT idBungalow, nomBungalow, superficieBungalow FROM BUNGALOWS b JOIN Campings c ON b.idCamping = c.idCamping WHERE nomCamping = 'Les Flots Bleus';
+SELECT *
+FROM BungalowsLFB ;
+SELECT count(*)
+FROM BungalowsLFB ;
+
+
+
+2) Vue LocationsLFB
+o En utilisant la vue BungalowsLFB créée précédemment, écrire une vue
+LocationsLFB qui contient les locations qui ont été réalisées dans le camping ‘Les Flots
+Bleus’. Cette vue doit avoir la structure suivante :
+LOCATIONSLFB (idLocation, idClient, nomClient, prenomClient, idBungalow, nomBungalow)
+
+CREATE OR REPLACE VIEW LocationsLFB (idLocation, idClient, nomClient, prenomClient, idBungalow, nomBungalow) AS SELECT idLocation, l.idClient, nomClient, prenomClient, b.idBungalow, nomBungalow FROM BUNGALOWSLFB b JOIN Locations l ON b.idBungalow = l.idBungalow JOIN Clients c ON c.idClient = l.idClient;
+SELECT idBungalow, nomBungalow, COUNT(idLocation) AS nbLovation
+FROM LocationsLFB GROUP BY idBungalow, NomBungalow;
+
+
+
+3) Vue LocationsBungalows
+o Créer une vue LocationsBungalows qui contient, pour tous les bungalows de la table Bungalows, toutes les informations sur le bungalow ainsi que son nombre de locations, son chiffre d’affaires CA, et son chiffre d’affaires moyen par location CAML (correspondant à CA / nbLocations). Cette vue doit avoir la structure suivante : LOCATIONSBUNGALOWS (idBungalow, nomBungalow, idCamping, nomCamping, superficieBungalow, nbLocations, CA, CAML)
+
+
+4) Vue ServicesBungalows
+o Créer une vue ServicesBungalows qui contient, pour tous les bungalows de la table Bungalows, toutes les informations sur le bungalow ainsi que le nombre de services et de catégories de services qu’il propose. SERVICESBUNGALOWS (idBungalow, nomBungalow, idCamping, nomCamping, superficieBungalow, nbServices, nbCategoriesServices)
+
+

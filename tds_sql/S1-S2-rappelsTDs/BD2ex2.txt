@@ -1,0 +1,35 @@
+BD2/ex2
+
+R11 : le nom et le prénom des employés qui travaillent dans le camping ‘Les Flots Bleus’. Les
+employés doivent être classés par rapport à leur salaire (du mieux payé au moins bien payé). 
+
+SELECT nomemploye, prenomemploye from (SELECT nomemploye, prenomemploye, salaireemploye from employes where idCamping in (select idcamping from campings where nomCamping = 'Les Flots Bleus') order by salaireEmploye DESC);
+
+R12 : l'identifiant, le nom et le prénom des clients nés avant l'an 2000 qui ont effectué au moins une location dans un camping qui se trouve à Palavas.
+
+
+R14 : le nom et le prénom des clients qui habitent dans une ville où il y a un camping
+
+SELECT nomclient, prenomclient from Clients c JOIN Locations l ON c.idclient=l.idclient JOIN BUNGALOWS b ON b.idbungalow=l.idbungalow JOIN CAMPINGS ca ON ca.idcamping=b.idcamping where villeCamping=villeClient;
+
+
+R15 : le nom et le prénom des subordonnés de Gaspard Alizan (c’est à dire des employés qui ont
+pour chef Gaspard Alizan). 
+SELECT nomemploye, prenomemploye from employes where idEmployeChef in (SELECT idEmploye from employes where nomemploye='Alizan' AND prenomemploye='Gaspard');
+
+
+R16 : l'identifiant, le nom et le prénom des clients qui étaient dans le camping ‘Les Flots Bleus’ le
+14 juillet 2021 (c'est-à-dire qui ont une location qui couvre le 14 juillet 2021). 
+SELECT idclient, nomclient, prenomclient from Clients c JOIN Locations l ON c.idclient=l.idclient JOIN BUNGALOWS b ON b.idbungalow=l.idbungalow JOIN CAMPINGS ca ON ca.idcamping=b.idcamping where villeCamping=villeClient;
+
+R22 : le nom et prénom de l’employé le plus mal payé du camping ‘Les Flots Bleus’. 
+
+R23 : le nom des bungalows qui ne proposent pas de service. 
+SELECT nomBungalow FROM bungalows WHERE idbungalow in(SELECT idbungalow FROM bungalows 
+MINUS 
+SELECT b.idbungalow FROM bungalows b join PROPOSER p ON p.idbungalow = b.idbungalow);
+
+
+SELECT nomBungalow FROM bungalows WHERE idbungalow in(SELECT idbungalow FROM bungalows 
+MINUS 
+SELECT b.idbungalow FROM bungalows b join PROPOSER p ON p.idbungalow = b.idbungalow JOIN services s ON s.idservice = p.idsevice WHERE bunga);

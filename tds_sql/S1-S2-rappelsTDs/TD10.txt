@@ -1,0 +1,204 @@
+SELECT COUNT(*) FROM produit
+Q1 Nombre de lignes dans la table produits ?
+14
+
+SELECT COUNT(*) FROM produit
+
+
+Q2 Nombre de produits différents achetés par le client 103 ? (Vous renommerez cette colonne nbProduits)
+nbProduits
+--
+3
+
+SELECT count(qa) AS nbProduits FROM achat WHERE ncli = 103;
+
+
+Q3 Nombre de produits achetés par chaque client ?
+NCLI NBPRODUITS
+------------
+108 3
+101 14
+107 3
+104 3
+105 1
+103 3
+106 3
+
+SELECT ncli,count(qa) AS nbProduits FROM achat GROUP BY ncli;
+
+
+Q4 (⋆) Numéro des clients qui ont fait au moins 3 achats ?
+NCLI
+------------
+108
+101
+107
+104
+103
+106
+
+SELECT ncli FROM (SELECT ncli,count(qa) AS nbProduits FROM achat GROUP BY ncli) WHERE nbProduits >= 3;
+
+
+Q5 Numéro des clients qui ont acheté tous les produits ?
+NCLI
+------------
+101
+
+SELECT ncli FROM (SELECT ncli,count(qa) AS nbProduits FROM achat GROUP BY ncli) WHERE nbProduits = (SELECT COUNT(*) FROM produit) ;
+
+
+Q6 Nom des clients qui ont acheté tous les produits ?
+NOM
+------------
+Defrere
+
+SELECT nom FROM client WHERE ncli IN (SELECT ncli FROM (SELECT ncli,count(qa) AS nbProduits FROM achat GROUP BY ncli) WHERE nbProduits = (SELECT COUNT(*) FROM produit));
+
+
+Q7 Pour chaque libellé de produit, sa quantité achetée min et max ?
+LIB MINQA MAXQA
+------------
+Crayon 1 12
+Encre 10 15
+Lampe 3 15
+Crayon Luxe 1 12
+Agrafeuse 4 13
+Pese-lettre 8 12
+Calculatrice 2 2
+
+SELECT lib,MIN(qa),MAX(qa) FROM produit p JOIN achat a ON p.np=a.np GROUP BY lib;
+
+
+3 Requêtes sur fournisseur réapprovisionnement
+Q8 Quelle est la quantité maximale réapprovisionnée (tous produits confondus) ?
+500
+
+SELECT MAX(qr) FROM reap
+
+
+Q9 Quel est le libellé de produit dont la quantité de réapprovisionnée est maximale ?
+LIB
+----
+Lampe
+
+SELECT lib FROM reap r JOIN produit p ON p.np = r.np WHERE qr = (SELECT MAX(qr) FROM reap);
+
+
+Q10 Pour chaque libelle de produit, le max de la quantité réapprovisionné (vous trierez le résultat par lib
+croissant)
+LIB MAX(QR)
+------------
+Agrafeuse 51
+Crayon 200
+Lampe 500
+
+SELECT lib,MAX(qr) FROM reap r JOIN produit p ON p.np = r.np GROUP BY lib
+
+
+Q11 Quels sont les numéros des produits qui ont déjà réapprovisionné (au moins) deux fois ?
+NP
+----
+1
+7
+9
+
+SELECT np, nbreap FROM (SELECT np,count(qr) AS nbreap FROM reap GROUP BY np) WHERE nbreap>=2
+
+
+Q12 (⋆) Quels sont les produits qui ont déjà été réapprovisionné (au moins) deux fois par des fournisseurs différents et en quantité supérieure à 50 ?
+NP
+---
+7
+
+SELECT np FROM (SELECT np,COUNT(qr) AS nbreap,COUNT(DISTINCT nf) AS nbnf FROM (SELECT np,qr,nf FROM reap WHERE qr > 50) GROUP BY np) WHERE nbreap>=2 AND nbnf >= 2
+
+
+Q13 Quels sont les numéros de fournisseurs qui ont déjà rapprovisionné tous les produits ?
+aucune ligne sélectionnée
+
+SELECT np, nbreap FROM (SELECT np,COUNT(qr) AS nbreap,COUNT(DISTINCT nf) AS nbnf FROM (SELECT np,qr,nf FROM reap WHERE qr > 50) GROUP BY np) WHERE nbreap>=2 AND nbnf = nbreap
+
+
+Q14 (⋆) Quels sont les fournisseurs qui ont déjà rapprovisionné toutes les Lampe(s) ?
+NF
+---
+1001
+
+SELECT nf FROM (SELECT nf, COUNT(DISTINCT np) AS nbnp FROM reap GROUP BY nf) WHERE nbnp = (SELECT COUNT(np) FROM produit)
+
+
+4 Requêtes sur missions
+Insérez les deux tuples suivants :
+INSERT INTO Mission VALUES (102,'France','08.01.2020','15.01.2020','Contrat ANR',3);
+INSERT INTO Visite VALUES (102,'IRIT','08.01.2020');
+Q15 Quel est le nombre d’organismes visités par numéro de mission ?
+NUMIS NB
+102 1
+101 1
+107 1
+104 1
+105 1
+103 2
+106 1
+
+SELECT numis, COUNT(numis) FROM visite GROUP BY numis
+
+
+Q16 (⋆) Quel est le nombre moyen d’organismes visités lors d’une mission ? (vous devez réutiliser la Q15 comme sous-requête).
+AVG(NB)
+---------
+1,14285714
+
+SELECT AVG (nbnumis) FROM (SELECT numis, COUNT(numis) AS nbnumis FROM visite GROUP BY numis)
+
+
+Q17 Quel sont les organismes visités au moins 2 fois ?
+NOMORG
+-------
+IRIT
+NICTA
+
+SELECT nomorg FROM (SELECT nomorg, COUNT(nomorg) AS nbnomorg FROM visite GROUP BY nomorg) WHERE nbnomorg >= 2
+
+
+Q18 (⋆) Quel sont les organismes visités au moins 2 fois à des dates différentes ?
+NOMORG
+-------
+NICTA
+
+SELECT nomorg FROM (SELECT nomorg, COUNT(nomorg) AS nbnomorg, COUNT(DISTINCT datevisite) AS nbdate FROM visite GROUP BY nomorg) WHERE nbnomorg >= 2 AND nbdate = nbnomorg
+
+
+Q19 Pour chaque nom de chercheur, le nombre d’organismes qu’il a visité ?
+NOM NB
+-------------------
+Dupont 4
+Roitelet 3
+Duvivier 1
+
+SELECT nom,COUNT(DISTINCT nomorg) FROM chercheur c JOIN MISSION m ON c.numc=m.numc JOIN visite v ON v.numis=m.numis GROUP BY nom
+
+
+Q20 Quels sont les noms de chercheurs qui ont effectué des visites dans tous les organismes enregistrés dans la
+base de données ?
+aucune ligne sélectionnée
+
+SELECT nom FROM (SELECT nom,COUNT(DISTINCT nomorg) AS nborg FROM chercheur c JOIN MISSION m ON c.numc=m.numc JOIN visite v ON v.numis=m.numis GROUP BY nom) WHERE nborg = (SELECT COUNT(nomorg) FROM visite);
+
+
+Q21 (⋆) Quels sont les chercheurs qui ont effectué des visites dans tous les organismes français (pays = ’France’) enregistrés dans la base de données ?
+NOM
+----
+Roitelet
+
+SELECT nom FROM (SELECT nom,COUNT(DISTINCT nomorg) AS nborg FROM chercheur c JOIN MISSION m ON c.numc=m.numc JOIN visite v ON v.numis=m.numis GROUP BY nom) WHERE nborg = (SELECT COUNT(v.nomorg) FROM visite v JOIN organisme o ON o.nomorg=v.nomorg WHERE pays = 'France');
+
+
+5 Vous en voulez encore ?
+Q22 Quel est le numéro du produit dont le nombre de réapprovisionnements est maximal ?
+NP
+----
+7
+
+SELECT np FROM reap WHERE qr= (SELECT MAX(qr) FROM reap)

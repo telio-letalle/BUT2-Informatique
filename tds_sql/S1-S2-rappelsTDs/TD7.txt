@@ -1,0 +1,238 @@
+ENTREPRISE(num e,nom e,adresse e)
+OFFRE(num o,#num e ,intitul´e,contrat,qualif,salaire,lieu de travail)
+DEMANDEUR(num demandeur,nom,prenom,adresse,qualif,date nais)
+
+Q1 Afficher les noms et pr´enoms et adresses des demandeurs d’emploi
+NOM PRENOM ADRESSE
+-----------------------------------------
+Dupont Mathieu Toulouse
+Dalors Homere Lille
+Kahl Jean Toulouse
+Stal Ingrid Lille
+Dupond Matthieu Paris
+Cleub Medhi Paris
+Tylo Ivan Lyon
+Bathe Anne Nancy
+Harem Colette Paris
+Manfaud Gerard Toulouse
+
+SELECT Nom,prenom,adresse from Demandeur
+
+
+Q2 Afficher les noms et les adresses des entreprises qui aux USA (dont l’adresse contient USA)
+NOME ADRE
+--------------------------
+HP Palo-Alto, Californie (USA)
+IBM Armonk, New York (USA)
+Dell Round Rock, Texas (USA)
+
+SELECT Nome,adre FROM Entreprise WHERE adre LIKE '%USA%';
+
+
+Q3 Afficher les noms et les adresses des entreprises qui offrent actuellement des emplois
+NOME ADRE
+--------------------------
+CapGemini Paris (FRANCE)
+Atos Origin Courbevoie (France)
+Sopra Group Paris (FRANCE)
+IBM Armonk, New York (USA)
+Dell Round Rock, Texas (USA)
+
+SELECT DISTINCT Nome,adre FROM Entreprise e JOIN Offre o ON e.nume=o.nume;
+
+
+Q4 Quelles sont les qualifs requises pour les offres dont le salaire est strictement sup´erieur `a 3000 euros ?
+QUALIF
+-----------
+Consultant
+
+SELECT DISTINCT qualif FROM Offre WHERE salaire>3000;
+
+
+Q5 Quels sont les demandeurs (nom et pr´enom) dont la qualif correspond `a au moins une qualif des emplois propos´es ?
+NOM PRENOM
+----------------------------
+Stal Ingrid
+Dupont Mathieu
+Cleub Medhi
+Harem Colette
+Dupond Matthieu
+Dalors Homere
+Tylo Ivan
+Kahl Jean
+Manfaud Gerard
+
+SELECT DISTINCT nom,prenom FROM Demandeur d JOIN Offre o ON d.qualif=o.qualif;
+
+
+Q6 Quels sont les demandeurs (nom et num´ero) dont la qualif ne correspond `a aucune qualif des emplois propos´es ?
+NOM NUMD
+----------------------------
+Bathe 8
+
+SELECT nom, numd FROM Demandeur
+MINUS
+SELECT DISTINCT nom,numd FROM Demandeur d JOIN Offre o ON d.qualif=o.qualif;
+
+
+Q7 Quelles sont les noms des entreprises qui n’offrent actuellement aucun emploi (mais qui sont r´ef´erenc´ees dans la base) ?
+NOME
+---------
+HP
+
+SELECT nome FROM Entreprise
+MINUS
+SELECT DISTINCT nome FROM Entreprise d JOIN Offre o ON d.nume=o.nume;
+
+
+Q8 Quels sont les noms des entreprises situ´ees aux USA ou proposant une offre dont le salaire est sup´erieur ou ´egal `a 2000 euros ?
+NOME
+--------
+Atos Origin
+CapGemini
+Dell
+HP
+IBM
+Sopra Group
+
+SELECT Nome FROM Entreprise WHERE adre LIKE '%USA%'
+UNION
+SELECT Nome FROM Entreprise e JOIN Offre o ON e.nume=o.nume WHERE salaire>=2000;
+
+
+Q9 Quels sont les noms des entreprises ne proposant que des contrats de type CDI (et proposant au moins une offre) ?
+NOME
+--------
+Dell
+
+SELECT DISTINCT Nome FROM Entreprise e JOIN Offre o ON e.nume=o.nume
+MINUS
+SELECT Nome FROM Entreprise e JOIN Offre o ON e.nume=o.nume WHERE contrat!='CDI';
+
+
+Q10 Quelles sont les noms des entreprises proposant une offfre dont la qualif est ’D´eveloppeur’ et une offre dont la qualif est ’Administrateur Syst`eme’ (pensez `a v´erifier l’orthographe des qualifications dans la base) ?
+NOME
+---------
+CapGemini
+Sopra Group
+
+SELECT DISTINCT Nome FROM Entreprise e JOIN Offre o ON e.nume=o.nume WHERE qualif='AdminSys'
+INTERSECT
+SELECT Nome FROM Entreprise e JOIN Offre o ON e.nume=o.nume WHERE qualif='Developpeur';
+
+
+Q11 Quelles sont les num´eros des entreprises proposant (au moins) deux offres ?
+NUME
+---------
+1
+2
+5
+3
+
+SELECT DISTINCT o1.Nume FROM Offre o1 JOIN Offre o2 ON o1.nume=o2.nume WHERE o1.numo!=o2.numo;
+
+
+Q12 Quel est le num´ero de l’offre dont le salaire est maximal ?
+NUMO
+---------
+5
+
+SELECT DISTINCT Numo FROM Offre
+MINUS
+SELECT DISTINCT o1.Numo FROM Offre o1, Offre o2 WHERE o1.numo!=o2.numo AND o1.salaire<o2.salaire;
+
+
+Q13 Quel sont les demandeurs (nom et pr´enom) qui ont la mˆeme qualif que monsieur Dalors ?
+Attention Mr Dalors ne doit pas apparaitre dans le r´esultat.
+NOM PRENOM
+----------------------------
+Dupont Mathieu
+
+SELECT Nom,prenom FROM Demandeur WHERE qualif=(SELECT qualif FROM Demandeur WHERE nom='Dalors') AND nom!='Dalors';
+
+
+ACTEUR(numa,nom)
+FILM(numf,titre,prod,real)
+JOUE(#numf,#numa)
+PROJETTE(nums,datep, heurep,#numf)
+
+Q1 Quels sont les titres des films dont le nom du r´ealisateur commence par ’Mickael’ ?
+TITRE
+-----
+Titanoc
+
+SELECT titre FROM Film WHERE real LIKE 'Mickael%'
+
+
+Q2 Quels sont les acteurs (nom) qui jouent dans ’Mission Impossible’ ?
+nom
+---
+Walker
+
+SELECT nom FROM Acteur a JOIN Joue j ON a.numa=j.numa JOIN Film f ON j.numf=f.numf WHERE titre LIKE 'Mission Impossible'
+
+
+Q3 Quels sont les titres des films projet´es dans la salle 2 ?
+TITRE
+-------
+StorWors
+Inception
+
+SELECT titre FROM Film f JOIN Projette p ON f.numf=p.numf WHERE nums=2
+
+
+Q4 Quels sont les r´ealisateurs qui ont produit un film qu’ils ont aussi r´ealis´e ?
+REAL
+-----
+Besson
+
+SELECT real FROM Film WHERE prod=real;
+
+
+Q5 Quels sont les r´ealisateurs qui ont jou´e dans un de leur film ?
+nom
+---
+Besson
+
+SELECT real FROM Acteur a JOIN Joue j ON a.numa=j.numa JOIN Film f ON j.numf=f.numf WHERE real = nom
+
+
+Q6 Quels sont les titres des films r´ealis´es par ’Spielberg’ ou projet´es dans la salle num´ero 2 ?
+TITRE
+----
+Inception
+Inception 2
+StorWors
+
+SELECT titre FROM Film WHERE real = 'Spielberg'
+UNION
+SELECT titre FROM Film f JOIN Projette p ON f.numf=p.numf WHERE nums=2
+
+
+Q7 Quels sont les r´ealisateurs qui ont r´ealis´e plusieurs films ?
+REAL
+-----
+Spielberg
+Landon
+
+SELECT DISTINCT f1.real FROM Film f1 JOIN Film f2 ON f1.real=f2.real WHERE f1.numf!=f2.numf
+
+
+Q8 Quels sont les titres des films dans lesquels jouent ’Angelina Jolie’ et ’Brad Pitt’ ?
+TITRE
+-----
+Inception
+
+SELECT titre FROM Acteur a JOIN Joue j ON a.numa=j.numa JOIN Film f ON j.numf=f.numf WHERE nom='Angelina Jolie'
+INTERSECT
+SELECT titre FROM Acteur a JOIN Joue j ON a.numa=j.numa JOIN Film f ON j.numf=f.numf WHERE nom = 'Brad Pitt'
+
+
+Q9 Quels sont les num´eros de films qui seront projett´es le plus tard (dont la date est la plus grande )
+NUMF
+----
+1
+
+SELECT numf FROM Projette
+MINUS
+SELECT p1.numf FROM Projette p1 , Projette p2 WHERE p1.datep<p2.datep

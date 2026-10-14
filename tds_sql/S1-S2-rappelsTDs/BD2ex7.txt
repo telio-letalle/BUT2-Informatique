@@ -1,0 +1,82 @@
+BD2ex7
+ MIDI’HOME CAMPING™ – DIVISIONS
+CAMPINGS (idCamping, nomCamping, villeCamping, nbEtoilesCamping)
+BUNGALOWS (idBungalow, nomBungalow, superficieBungalow, idCamping#)
+SERVICES (idService, nomService, categorieService)
+PROPOSER (idBungalow#, idService#)
+CLIENTS (idClient, nomClient, prenomClient, dateNaissanceClient, villeClient)
+LOCATIONS (idLocation, idClient#, idBungalow#, dateDebut, dateFin, montantLocation)
+EMPLOYES (idEmploye, nomEmploye, prenomEmploye, salaireEmploye, idCamping#, idEmployeChef#)
+
+R100 : le nom des bungalows qui proposent tous les services (c'est-à-dire tous les services qui sont dans la table Services). Réaliser cette division d’au moins deux façons différentes
+NOMBUNGALOW
+------------
+Le Palace
+
+SELECT nomBungalow FROM Bungalows b JOIN Proposer p ON b.idBungalow=p.idBungalow Group BY b.idBungalow, nomBungalow HAVING COUNT(*) = (SELECT COUNT(*) FROM SERVICES);
+
+SELECT nomBungalow FROM Bungalows b
+WHERE NOT EXISTS (
+SELECT idService FROM Services
+MINUS
+SELECT idService FROM Proposer p
+WHERE p.idBungalow= b.idBungalow);
+
+
+R101 : le nom des bungalows qui proposent tous les services de la catégorie ‘Luxe’.
+Réaliser cette division d’au moins deux façons différentes
+NOMBUNGALOW
+------------------
+Le Palace
+Le Titanic
+La Suite Nuptiale
+
+SELECT nomBungalow FROM Bungalows b JOIN Proposer p ON b.idBungalow=p.idBungalow JOIN Services s ON s.idService=p.idService Where categorieService = 'Luxe' Group BY b.idBungalow, nomBungalow HAVING COUNT(*) = (SELECT COUNT(*) FROM SERVICES Where categorieService = 'Luxe');
+
+SELECT nomBungalow FROM Bungalows b
+WHERE NOT EXISTS (
+SELECT idService FROM Services Where categorieService = 'Luxe'
+MINUS
+SELECT s.idService FROM Proposer p JOIN Services s ON s.idService=p.idService 
+WHERE categorieService = 'Luxe' and p.idBungalow= b.idBungalow);
+
+
+R102 : le nom des bungalows qui proposent tous les services proposés par le bungalow qui se nomme ‘La Poubelle’.
+Réaliser cette division d’au moins deux façons différentes
+NOMBUNGALOW
+------------
+Le Palace
+Le Royal
+La Poubelle
+
+SELECT nomBungalow FROM Bungalows b
+WHERE NOT EXISTS (
+SELECT p.idService FROM Bungalows bun JOIN Proposer p ON bun.idBungalow=p.idBungalow Where bun.nomBungalow = 'La Poubelle'
+MINUS
+SELECT p.idService FROM Proposer p WHERE p.idBungalow= b.idBungalow)
+AND NOT EXISTS (
+SELECT p.idService FROM Proposer p Where p.idBungalow= b.idBungalow
+MINUS
+SELECT p.idService FROM Bungalows bu JOIN Proposer p ON bu.idBungalow=p.idBungalow WHERE bu.nomBungalow = 'La Poubelle')
+???????????????
+
+
+
+R103 : le nom des clients qui ont réalisé au moins une location dans toutes les villes pour lesquelles
+il y a des campings.
+NOMCLIENT
+----------
+Tare
+Nemard
+R104 : le nom des clients qui ont loué tous les bungalows loués par la cliente Agathe Zeblouse.
+NOMCLIENT
+----------
+Zeblouse
+Zetofrais
+R105 : le nom et le prénom des clients qui ont sont allés exactement dans les mêmes campings que
+la cliente Agathe Zeblouse.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Zeblouse Agathe
+Terrieur Alain
+Nemard Jean

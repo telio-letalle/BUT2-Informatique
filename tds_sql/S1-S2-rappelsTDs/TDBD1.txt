@@ -1,0 +1,142 @@
+DROP TABLE Visite;
+DROP TABLE Organisme;
+DROP TABLE Mission;
+DROP TABLE Chercheur;
+
+CREATE TABLE Chercheur
+(numc INTEGER NOT NULL,
+nom VARCHAR(20) NOT NULL,
+prenom VARCHAR(20) NOT NULL,
+equipe VARCHAR(10) NOT NULL,
+CONSTRAINT pk_Chercheur PRIMARY KEY(numc));
+
+CREATE TABLE Mission
+(numis INTEGER NOT NULL,
+pays VARCHAR(20) NOT NULL,
+datedeb DATE DEFAULT CURRENT_DATE,
+datefin DATE DEFAULT CURRENT_DATE,
+objet VARCHAR(20) NOT NULL,
+numc INTEGER NOT NULL,
+CONSTRAINT pk_Mission PRIMARY KEY(numis),
+CONSTRAINT fk_Mission_numc FOREIGN KEY (numc) REFERENCES Chercheur(numc));
+
+CREATE TABLE Organisme
+(nomorg  VARCHAR(40) NOT NULL,
+pays VARCHAR(40) NOT NULL,
+CONSTRAINT pk_Organisme PRIMARY KEY(nomorg));
+
+CREATE TABLE Visite
+(numis INTEGER NOT NULL,
+nomorg  VARCHAR(40) NOT NULL,
+datevisite DATE DEFAULT CURRENT_DATE,
+CONSTRAINT pk_Visite PRIMARY KEY(numis,nomorg),
+CONSTRAINT fk_Visite_numis FOREIGN KEY (numis) REFERENCES Mission(numis),
+CONSTRAINT fk_Visite_nomorg FOREIGN KEY (nomorg) REFERENCES Organisme(nomorg));
+
+INSERT INTO Chercheur VALUES (1,'Roitelet','Martine','BD');
+INSERT INTO Chercheur VALUES (2,'Dupont','Jacques','IA');
+INSERT INTO Chercheur VALUES (3,'Duvivier','Anne','BD');
+INSERT INTO Chercheur VALUES (4,'Rifflet','Jean-Marie','Systeme');
+
+INSERT INTO Organisme VALUES ('LIRMM','France');
+INSERT INTO Organisme VALUES ('IRIT','France');
+INSERT INTO Organisme VALUES ('MIT','Etats-Unis');
+INSERT INTO Organisme VALUES ('4C','Irlande');
+INSERT INTO Organisme VALUES ('NICTA','Australie');
+INSERT INTO Organisme VALUES ('Cork University','Irlande');
+
+INSERT INTO Mission VALUES (101,'France','08.01.2020','15.01.2020','Contrat ANR',1);
+INSERT INTO Mission VALUES (102,'France','08.01.2020','15.01.2020','Contrat ANR',3);
+INSERT INTO Mission VALUES (103,'Irlande','08.09.2020','21.09.2020','CP 2020',2);
+INSERT INTO Mission VALUES (104,'Australie','07.01.2020','18.01.2020','CPAIOR',2);
+INSERT INTO Mission VALUES (105,'Etats-Unis','31.01.2020','08.02.2020','IJCAI',2);
+INSERT INTO Mission VALUES (106,'France','01.06.2020','15.06.2020','Coordination ANR',1);
+INSERT INTO Mission VALUES (107,'Australie','08.01.2020','18.01.2020','CPAIOR',1);
+
+INSERT INTO Visite VALUES (101,'IRIT','08.01.2020');
+INSERT INTO Visite VALUES (102,'IRIT','08.01.2020');
+INSERT INTO Visite VALUES (103,'4C','08.09.2020');
+INSERT INTO Visite VALUES (103,'Cork University','12.09.2020');
+INSERT INTO Visite VALUES (104,'NICTA','07.01.2020');
+INSERT INTO Visite VALUES (105,'MIT','31.01.2020');
+INSERT INTO Visite VALUES (106,'LIRMM','01.06.2020');
+INSERT INTO Visite VALUES (107,'NICTA','08.01.2020');
+
+
+Q1 Noms des organismes visités par le chercheur ”Martine Roitelet” ?
+Select v.nomorg FROM Chercheur c JOIN Mission m ON c.numc = m.numc JOIN Visite v ON m.numis = v.numis WHERE c.prenom = 'Martine' AND c.nom = 'Roitelet';
+
+Q2 Lister les noms des chercheurs ayant effectué au moins une mission aux Etats-Unis et une mission en Australie.
+Select c.nom FROM Chercheur c JOIN Mission m ON c.numc = m.numc WHERE pays = 'Etats-Unis';
+Intersect
+Select c.nom FROM Chercheur c JOIN Mission m ON c.numc = m.numc WHERE pays = 'Australie';
+
+Q3 Quels sont les chercheurs qui n’ont fait aucune mission ?
+Select nom FROM Chercheur
+MINUS
+Select c.nom FROM Chercheur c JOIN Mission m ON c.numc = m.numc;
+
+Q4 Quels sont les chercheurs qui ont effectué des visites dans tous les organismes enregistrés dans la base de données ?
+Select nom FROM Chercheur
+MINUS
+Select nom FROM Chercheur, Mission
+MINUS
+Select c.nom FROM Chercheur c JOIN Mission m ON c.numc = m.numc;
+
+SELECT nom FROM chercheur 
+MINUS ( 
+SELECT nom FROM (
+SELECT nom, nomorg FROM chercheur, organisme WHERE pays ='France'
+MINUS
+SELECT nom, nomorg FROM chercheur c
+JOIN mission m ON c.numc = m.numc
+JOIN visite v ON v.numis = m.numis))
+
+Q6 Afficher les noms et prénoms des chercheurs triés par ordre alphabétique
+Select nom,prenom FROM Chercheur ORDER BY nom;
+
+Q7 Afficher les numéros des missions triées par date de début décroissantes
+Select numis FROM Mission ORDER BY datedeb DESC;
+
+Q8 Trier les organismes par pays puis nom par ordre alphabétique.
+Select pays,nomorg FROM Organisme ORDER BY pays,nomorg;
+
+Q9 Quel est le nombre de chercheurs dans la base ?
+Select count(*) FROM chercheur
+
+Q10 (⋆) Quel est le nombre de chercheurs qui ont effectué des misisons ?
+Select count(distinct numc) FROM  Mission
+
+Q11 Quel est l’objet de mission la plus ancienne (date de début) dans la base ?
+Select objet FROM Mission WHERE datedeb = (Select MIN(datedeb) FROM Mission)
+
+Q12 (⋆) Quel est le nom du chercheur de la mission la plus ancienne dans la base ?
+Select nom FROM Chercheur c JOIN Mission m ON c.numc=m.numc WHERE m.datedeb = (Select MIN(datedeb) FROM Mission)
+
+Q13 Quel est le nombre d’organismes visités par le chercheur ”Martine Roitelet” ?
+Select count(v.nomorg) FROM Chercheur c JOIN Mission m ON c.numc = m.numc JOIN Visite v ON m.numis = v.numis WHERE c.prenom = 'Martine' AND c.nom = 'Roitelet';
+
+Q14 (⋆) Quel est le nombre total de missions hors de France ?
+Select count(distinct numis) FROM Mission WHERE pays != 'France'
+
+
+UPDATE Chercheur SET equipe='Systeme' WHERE nom = 'Dupont';
+
+DELETE FROM Visite WHERE numis IN (Select numis FROM Mission m JOIN Chercheur c ON m.numc = c.numc WHERE c.prenom='Anne' AND c.nom= 'Duvivier');
+
+DELETE FROM Mission WHERE numc IN (Select numc FROM Chercheur WHERE prenom='Anne' AND nom= 'Duvivier');
+
+ALTER TABLE Chercheur ADD labo VARCHAR(40);
+
+ALTER TABLE Chercheur ADD CONSTRAINT fk_Chercheur_labo FOREIGN KEY (labo) References Organisme(nomorg);
+
+UPDATE Chercheur SET labo='LIRMM';
+
+ALTER TABLE Chercheur MODIFY labo NOT NULL;
+
+INSERT INTO Chercheur (numc, nom, prenom, equipe)VALUES (1,'Roitelet','Martine','BD');
+ERREUR à la ligne 1 :
+ORA-01400: impossible d'insérer NULL dans ("HELLERK"."CHERCHEUR"."LABO")
+
+Q15 Quels sont les numéros chercheurs qui ont effectué au moins deux missions ?
+SELECT DISTINCT m1.numc FROM Mission m1 JOIN Mission m2 ON m1.numc = m2.numc;

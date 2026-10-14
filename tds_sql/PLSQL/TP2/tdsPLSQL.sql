@@ -130,7 +130,7 @@ CREATE OR REPLACE PROCEDURE affichageInfosTournoi(p_idTournoi IN Tournois.idTour
     
 BEGIN
     SELECT COUNT(*) INTO v_nbTournoi
-    FROM Tournois
+    FROM Tournoisg
     WHERE idTournoi = p_idTournoi;
 
     IF v_nbTournoi = 1

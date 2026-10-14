@@ -1,0 +1,288 @@
+IUT de Montpellier-Sete - R1.05 Introduction aux bases de donn´ees et SQL R. Coletta - G.Hisler - N. Palleja - X. Palleja
+IUT de Montpellier - Base de Donn´ees - TD9
+1 Contexte de l’application :
+Le service du personnel d’un organisme de recherche ´etudie la r´ealisation d’un syst`eme d’information pour
+la gestion des missions des chercheurs. La structure du centre de recherche comprend un certain nombre de
+d´epartements `a th`emes et des ´equipes travaillant sur des projets sp´ecifiques.
+Au cours de ses missions en France ou `a l’´etranger, chaque chercheur est amen´e `a effectuer une `a plusieurs
+visites dans des organismes de recherche ou d’enseignement des pays visit´es. Le sch´ema relationnel suivant
+d´ecrit les structures de donn´ees concernant les chercheurs et les missions effectu´ees ainsi que les organismes
+visit´es :
+
+
+Chercheur (numc, nom, prenom, equipe)
+Mission (numis, pays, datedeb, datefin, objet, #numc)
+Visite ( #numis, #nomorg, datevisite)
+Organisme (nomorg, pays)
+
+
+Remarques :
+— Pensez `a forcer les attributs obligatoires `a avoir une valeur.
+— les attributs qui composent la cl´e primaire sont ”automatiquement” NOT NULL
+— la cl´e ´etrang`ere ne s’applique que si une valeur est renseign´ee, mais n’interdit pas le NULL.
+— La date de fin d’une mission doit ˆetre post´erieure `a sa date de d´ebut.
+
+
+2 D´efinition de schema
+a. (⋆)Cr´eer les tables avec les contraintes d’int´egrit´e.
+Attention `a l’ordre de cr´eation des tables induit par les contraintes de cl´e ´etrang`ere.
+
+CREATE TABLE chercheur(
+numc INTEGER,
+nom VARCHAR(20) NOT NULL,
+prenom VARCHAR(20) NOT NULL,
+equipe VARCHAR(20) NOT NULL,
+CONSTRAINT pk_chercheur PRIMARY KEY(numc));
+
+CREATE TABLE mission(
+numis INTEGER,
+pays VARCHAR(20) NOT NULL,
+datedeb DATE NOT NULL,
+datefin DATE NOT NULL,
+objet VARCHAR(40) NOT NULL,
+numc INTEGER,
+CONSTRAINT pk_mission PRIMARY KEY(numis),
+CONSTRAINT fk_mission FOREIGN KEY(numc) REFERENCES chercheur(numc),
+CONSTRAINT dates_verif CHECK (datedeb<datefin)
+);
+
+CREATE TABLE organisme(
+nomorg VARCHAR(20),
+pays VARCHAR(20) NOT NULL,
+CONSTRAINT pk_organisme PRIMARY KEY(nomorg)
+);
+
+CREATE TABLE visite(
+numis INTEGER,
+nomorg VARCHAR(20),
+datevisite DATE NOT NULL,
+CONSTRAINT pk_visite PRIMARY KEY(numis,nomorg),
+CONSTRAINT fk_visite FOREIGN KEY(numis) REFERENCES mission(numis),
+CONSTRAINT fk2_visite FOREIGN KEY(nomorg) REFERENCES organisme(nomorg)
+);
+
+
+
+b. Ins´erer les chercheurs suivants dans la table chercheur :
+numc nom prenom equipe
+1 Roitelet Martine BD
+2 Dupont Jacques IA
+3 Duvivier Anne BD
+4 Rifflet Jean-Francois Systeme
+
+INSERT INTO chercheur VALUES (1, 'Roitelet', 'Martine', 'BD');
+INSERT INTO chercheur VALUES (2, 'Dupont', 'Jacques', 'IA');
+INSERT INTO chercheur VALUES (3, 'Duvivier', 'Anne', 'BD');
+INSERT INTO chercheur VALUES (4, 'Rifflet', 'Jean-Francois', 'Systeme');
+
+
+
+c. Ins´erer les organismes suivants :
+nomorg pays
+LIRMM France
+IRIT France
+
+INSERT INTO organisme VALUES ('LIRMM', 'France');
+INSERT INTO organisme VALUES ('IRIT', 'France');
+
+
+
+d. Ins´erer les missions suivantes :
+numis pays datedeb datefin objet numc
+101 France ’08/01/2020’ ’15/01/2020’ Contrat ANR 1
+102 France ’08/01/2020’ ’15/01/2020’ Contrat ANR 3
+
+INSERT INTO mission VALUES (101, 'France', '08/01/2020', '15/01/2020', 'Contrat ANR', 1);
+INSERT INTO mission VALUES (102, 'France', '08/01/2020', '15/01/2020', 'Contrat ANR', 3);
+
+
+e. Ins´erer les visites suivantes :
+numis nomorg datevisite
+101 IRIT ’08/01/2020’
+102 IRIT ’08/01/2020’
+
+INSERT INTO visite VALUES (101, 'IRIT', '08/01/2020');
+INSERT INTO visite VALUES (102, 'IRIT', '08/01/2020');
+
+
+
+f. Inserer le ScriptTD9.txt
+
+
+3 Requˆetes SQL
+
+Q1 Noms des organismes visit´es par le chercheur ”Martine Roitelet” ?
+NOMORG
+-------------
+IRIT
+LIRMM
+NICTA
+
+SELECT nomorg FROM visite v JOIN mission m ON v.numis=m.numis JOIN chercheur c ON m.numc=c.numc WHERE nom = 'Roitelet' AND prenom = 'Martine';
+
+
+
+Q2 Lister les noms des chercheurs ayant effectu´e au moins une mission aux Etats-Unis et une mission en Australie.
+NOM
+------
+Dupont
+
+SELECT nom FROM mission m JOIN chercheur c ON m.numc=c.numc WHERE pays = 'Etats-Unis';
+INTERSECT
+SELECT nom FROM mission m JOIN chercheur c ON m.numc=c.numc WHERE pays = 'Australie';
+
+
+
+Q3 Quels sont les chercheurs qui n’ont fait aucune mission ?
+NOM
+------
+Rifflet
+
+SELECT nom FROM chercheur
+MINUS
+SELECT nom FROM mission m JOIN chercheur c ON m.numc=c.numc;
+
+
+
+Q4 Afficher les noms et pr´enoms des chercheurs tri´es par ordre alphab´etique
+NOM PRENOM
+Dupont Jacques
+Duvivier Anne
+Rifflet Jean-Franc¸ois
+Roitelet Martine
+
+SELECT nom,prenom FROM chercheur ORDER BY nom,prenom;
+
+
+Q5 Afficher les num´eros des missions tri´ees par date de d´ebut d´ecroissantes.
+NUMIS
+-----
+103
+106
+105
+101
+102
+107
+104
+
+SELECT numis FROM mission ORDER BY datedeb DESC;
+
+
+
+Q6 Trier les organismes par pays puis nom par ordre alphab´etique.
+PAYS NOMORG
+------------------------------
+Australie NICTA
+Etats-Unis MIT
+France IRIT
+France LIRMM
+Irlande Cork University
+Irlande 4C
+
+SELECT pays,nomorg FROM organisme ORDER BY pays,nomorg;
+
+
+Q7 Quel est le nombre de chercheurs dans la base ?
+4
+
+SELECT COUNT(*) FROM chercheur;
+
+
+Q8 Quel est le nombre de chercheurs qui ont effectu´e des missions ?
+3
+
+SELECT COUNT(DISTINCT nom) FROM mission m JOIN chercheur c ON m.numc=c.numc;
+
+
+Q9 Quel est l’objet de mission la plus ancienne (date de d´ebut) dans la base ?
+OBJET
+--
+CPAIOR
+
+SELECT objet FROM mission WHERE datedeb = (SELECT MIN(datedeb) FROM mission);
+
+
+Q10 Quel est le nom du chercheur de la mission la plus ancienne dans la base ?
+NOM
+--------
+Dupont
+
+SELECT nom FROM mission m JOIN chercheur c ON m.numc=c.numc WHERE datedeb = (SELECT MIN(datedeb) FROM mission);
+
+
+Q11 Quel est le nombre d’organismes visit´es par le chercheur ”Martine Roitelet” ?
+3
+
+SELECT COUNT(DISTINCT nomorg) FROM visite v JOIN mission m ON v.numis=m.numis JOIN chercheur c ON m.numc=c.numc WHERE nom = 'Roitelet' AND prenom = 'Martine';
+
+
+Q12 Quel est le nombre total de missions hors de France ?
+4
+
+SELECT COUNT(*) FROM mission WHERE pays != 'France';
+
+
+
+
+4 Modification des donn´ees
+
+a. Modifier l’´equipe du chercheur Dupont Jacques qui est d´esormais dans l’´equipe IA.
+
+UPDATE chercheur SET equipe='IA' WHERE nom='Dupont' AND prenom= 'Jacques';
+
+
+b. Supprimer les missions (et les visites) du chercheur Anne Duvivier.
+
+DELETE FROM visite WHERE numis=(SELECT numis FROM mission m JOIN chercheur c ON m.numc=c.numc WHERE nom='Duvivier' AND prenom= 'Anne');
+DELETE FROM mission WHERE numc=(SELECT numc FROM chercheur WHERE nom='Duvivier' AND prenom= 'Anne');
+
+
+
+5 Evolution de sch´ema
+
+a. Ajouter un attribut labo dans la table chercheur qui repr´esente son organisme de rattachement.
+
+ALTER TABLE chercheur ADD labo VARCHAR(20);
+
+
+b. Cet organisme devra r´ef´erencer un organisme existant. Ajouter une contrainte le v´erifiant.
+
+ALTER TABLE chercheur ADD CONSTRAINT fk_chercheur FOREIGN KEY(labo) REFERENCES organisme(nomorg);
+
+
+c. (⋆) Apr`es avoir affect´e tous les chercheurs au labo ’LIRMM’, rendre cet attribut obligatoire.
+
+UPDATE chercheur SET labo = 'LIRMM'
+ALTER TABLE chercheur MODIFY labo NOT NULL;
+
+
+d. Essayer d’ajouter un chercheur sans labo pour v´erifier que son insertion est bien rejet´ee.
+
+INSERT INTO chercheur(numc, nom, prenom, equipe) VALUES (107, 'bob', 'rosse', 21);
+
+
+6 Pour aller un peu plus loin
+Q13 Quels sont les num´eros chercheurs qui ont effectu´e au moins deux missions ?
+NUMC
+----
+1
+2
+
+SELECT DISTINCT m1.numc FROM mission m1 JOIN mission m2 ON m1.numc=m2.numc WHERE m1.numis!=m2.numis;
+
+
+Q14 (⋆) Quels sont les chercheurs qui ont effectu´e au moins deux missions `a l’´etranger ?
+NUMC
+----
+2
+
+SELECT DISTINCT m1.numc FROM mission m1 JOIN mission m2 ON m1.numc=m2.numc WHERE m1.numis!=m2.numis AND m1.pays != 'France' AND m2.pays != 'France';
+
+
+Q15 Quels sont les noms des chercheurs qui ont visit´e au moins trois organismes diff´erents ?
+NOM
+--------
+Dupont
+Roitelet
+
+SELECT DISTINCT nom FROM chercheur WHERE (SELECT DISTINCT nom,COUNT(DISTINCT nomorg) FROM chercheur c JOIN mission m ON c.numc=m.numc JOIN visite v ON v.numis=m.numis)>=3;

@@ -1,0 +1,177 @@
+ MIDI’HOME CAMPING™ – Les antijointures (NOT IN – NOT EXISTS – MINUS)
+
+
+CAMPINGS (idCamping, nomCamping, villeCamping, nbEtoilesCamping)
+BUNGALOWS (idBungalow, nomBungalow, superficieBungalow, idCamping#)
+SERVICES (idService, nomService, categorieService)
+PROPOSER (idBungalow#, idService#)
+CLIENTS (idClient, nomClient, prenomClient, dateNaissanceClient, villeClient)
+LOCATIONS (idLocation, idClient#, idBungalow#, dateDebut, dateFin, montantLocation)
+EMPLOYES (idEmploye, nomEmploye, prenomEmploye, salaireEmploye, idCamping#, idEmployeChef#)
+
+
+Réaliser sous Oracle les requêtes suivantes :
+
+
+R3A : le nom et le prénom des employés qui n’ont pas de chef.
+NOMEMPLOYE PRENOMEMPLOYE
+----------- --------------
+Assin Marc
+
+SELECT nomEmploye, prenomEmploye FROM 
+(SELECT idEmploye, nomEmploye, prenomEmploye FROM EMPLOYES
+minus 
+SELECT e1.idEmploye, e1.nomEmploye, e1.prenomEmploye FROM EMPLOYES e1 JOIN EMPLOYES e2 ON e1.idEmployeChef=e2.idEmploye)
+
+
+R3B : le nom des bungalows qui n’ont jamais été loués.
+Réaliser cette requête de 3 façons différentes : NOT IN, MINUS, NOT EXISTS.
+NOMBUNGALOW
+---------------------
+La Suite Régalienne
+La Suite Nuptiale
+Le Polymorphe
+La Suite Monarchique
+
+SELECT nomBungalow FROM BUNGALOWS WHERE idBungalow NOT IN (SELECT idBungalow FROM LOCATIONS)
+
+SELECT nomBungalow FROM 
+(SELECT idBungalow, nomBungalow FROM BUNGALOWS
+minus 
+SELECT b.idBungalow, b.nomBungalow FROM BUNGALOWS b JOIN LOCATIONS l ON b.idBungalow=l.idBungalow)
+
+SELECT b.nomBungalow FROM BUNGALOWS b WHERE NOT EXISTS ( SELECT l.idBungalow FROM LOCATIONS l WHERE b.idBungalow=l.idBungalow)
+
+
+R30 : le nom des campings qui n’ont pas d’employé.
+Réaliser cette requête avec un NOT EXISTS ou un MINUS.
+Puis regarder ce qu’il se passe si on fait cette requête avec un NOT IN.
+NOMCAMPING
+-------------------
+The White Majestic
+
+SELECT c.nomCamping FROM Campings c WHERE NOT EXISTS ( SELECT e.idCamping FROM EMPLOYES e WHERE c.idCamping =e.idCamping )
+
+SELECT nomCamping FROM 
+(SELECT idCamping, nomCamping FROM Campings
+minus 
+SELECT c.idCamping, c.nomCamping FROM Campings c JOIN EMPLOYES e ON c.idCamping=e.idCamping)
+
+SELECT nomCamping FROM Campings c WHERE c.idCamping NOT IN (SELECT e.idCamping FROM EMPLOYES e) <---- not in pas de null sur EMPLOYES
+
+
+R31 : le nombre de bungalows qui ne proposent pas de service.
+NB BUNGALOWS
+------------
+2
+
+SELECT COUNT(*) FROM BUNGALOWS b WHERE NOT exists (SELECT p.idBungalow FROM PROPOSER p WHERE b.idBungalow=p.idBungalow)
+
+
+R32 : le nom des clients qui ont réalisé des locations, mais jamais dans des bungalows de moins de 58 m².
+NOMCLIENT
+----------
+Stico
+
+SELECT nomClient FROM CLIENTS c JOIN LOCATIONS l ON c.idClient=l.idClient
+MINUS
+SELECT nomClient FROM CLIENTS c JOIN LOCATIONS l ON c.idClient=l.idClient JOIN BUNGALOWS b ON b.idBungalow=l.idBungalow WHERE superficieBungalow <= 58
+
+
+R33 : le nom des campings où tous les employés ont un salaire supérieur ou égal à 1 000 €.
+NOMCAMPING
+----------------
+Les Flots Bleus
+
+SELECT nomCamping FROM
+(SELECT c.idCamping, nomCamping FROM Campings c JOIN EMPLOYES e ON c.idCamping=e.idCamping
+MINUS
+SELECT c.idCamping, nomCamping FROM Campings c JOIN EMPLOYES e ON c.idCamping=e.idCamping WHERE salaireEmploye < 1000)
+
+
+R34 : le nom des clients montpelliérains qui n’ont jamais réalisé de location dans un bungalow qui ne propose pas de service.
+NOMCLIENT
+----------
+Stico
+
+SELECT nomClient FROM
+(SELECT c.idClient, nomClient FROM CLIENTS c JOIN LOCATIONS l ON c.idClient=l.idClient 
+WHERE NOT EXISTS
+(SELECT c.idClient, nomClient FROM CLIENTS c JOIN LOCATIONS l ON c.idClient=l.idClient JOIN salaireEmploye < 1000)
+?????????????????????
+
+Requêtes diverses :
+R40 : l’identifiant, le nom et le prénom des clients qui ont réalisé une location (au moins) dans un
+camping qui se trouve dans la ville où ils habitent.
+IDCLIENT NOMCLIENT PRENOMCLIENT
+--------- ---------- -------------
+C6 Bricot Judas
+C10 Nemard Jean
+IUT Montpellier – Informatique – 1A 2025-2026
+BD2 6
+R41 : le nom et le prénom des clients qui n’ont jamais réalisé de location dans le camping ‘Les Flots
+Bleus’.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Zeblouse Agathe
+Terrieur Alain
+Nemard Jean
+Ouzy Jacques
+Micoton Mylène
+R42 : le nombre de bungalows du camping ‘La Décharge Monochrome’ qui ont été loués par le
+client Agathe Zeblouse.
+NB BUNGALOWS
+-------------
+2
+R43 : pour chacun des employés de la table Employés, le nom, le prénom de l’employé ainsi que le
+nom de son chef. Les employés doivent être classés par ordre lexicographique de leur nom.
+NOMEMPLOYE PRENOMEMPLOYE NOMEMPLOYECHEF
+----------- -------------- ---------------
+Alizan Gaspard Assin
+Assin Marc Pas de chef
+Croque Odile Gator
+Deuf John Assin
+Gator Ali Deuf
+Gator Ali Kaecouté
+Kaecouté Xavier Assin
+Niohrangina Nicolas Alizan
+Triser Jessica Niohrangina
+Vesselle Aude Alizan
+R44 : le nom des bungalows qui ne proposent pas de services de la catégorie ‘Loisir’.
+NOMBUNGALOW
+---------------------
+Le Caniveau
+La Suite Monarchique
+Le Polymorphe
+R45 : le numéro de la location du camping ‘The White Majestic’ qui a duré le plus de temps.
+IDLOCATION
+-----------
+L16
+R46 : les villes dans lesquelles résident des clients mais où il n’y a pas de camping.
+VILLECLIENT
+------------
+Béziers
+Montpellier
+Nimes
+Paris
+Toulouse
+R47 : le nom et le prénom du dernier client qui a loué le bungalow ‘La Poubelle’.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Zetofrais Mélanie
+R48 : le nom et le prénom des clients pour lesquels toutes les locations ont duré au moins 10 jours.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Terrieur Alex
+Bricot Judas
+Nemard Jean
+R49 : le nom et le prénom des clients qui ont effectué une location (au moins) dans le camping ‘Les
+Flots Bleus’ ou une location (au moins) dans le camping ‘La Décharge Monochrome’ mais
+pas dans les deux.
+NOMCLIENT PRENOMCLIENT
+---------- -------------
+Zeblouse Agathe
+Terrieur Alain
+Stico Judas
+Nemard Jean
+Nemard Jean
