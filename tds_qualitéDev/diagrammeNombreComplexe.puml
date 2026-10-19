@@ -1,0 +1,21 @@
+@startuml
+title Diagramme de classes - Nombres complexes
+
+class NombreComplexe {
+  - partieReelle : float
+  - partieImaginaire : float
+  - {static}totalNombresComplexes : int
+  + NombreComplexe()
+  + NombreComplexe(partieReelle : float)
+  + NombreComplexe(partieReelle : float, partieImaginaire : float)
+  + NombreComplexe(nombre : NombreComplexe)
+  + calculerSomme(nombre : NombreComplexe) : NombreComplexe
+  + calculerProduit(nombre : NombreComplexe) : NombreComplexe
+  + equals(o : Object) : boolean
+  + toString() : String
+  + getPartieReelle() : float
+  + getPartieImaginaire() : float
+  + {static}getTotalNombresComplexes() : int
+}
+
+@enduml   

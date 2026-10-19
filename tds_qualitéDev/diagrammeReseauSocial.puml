@@ -1,0 +1,92 @@
+@startuml
+
+title Diagramme de classes - Pub
+
+abstract class Publication {
+    - titre: String
+    - date: LocalDate
+    - nbPublicationsApplication : int
+    + Publication(titre : String, date : LocalDate)
+    + getTitre() : String
+    + setTitre(titre : String)
+    + getDate() : LocalDate
+    + getAuteur() : Utilisateur
+    + estMasquage() : boolean
+    + getNbPublicationsApplication() : int
+    + masquer(raison : String, administrateur : Utilisateur) : void
+    + demasquer() : void
+    + getDetailsMasquage() : String
+}
+class Message {
+    - contenu: String
+    - moyenne: double
+    + getContenu() : String
+    + getMoyenne() : double
+    + setContenu(contenu : String) : void
+    + ajouterNote(auteur : Utilisateur, valeur : int) : void
+}
+
+class Noter {
+    note: int
+}
+
+class Utilisateur {
+    - login: String
+    - adresseMail: String
+    - auteur : Utilisateur
+    - groupes : ArrayList<Groupe>
+    + getLogin() : String
+    + getAdresseMail() : String
+    + setAdresseMail(mail : String) : void
+}
+
+class Groupe {
+    - nomGroupe: String
+    - nbMembres: int
+    - membres : ArrayList<Utilisateur>
+    - administrateurs : ArrayList<Administrateur>
+    + ajouterMembre(u : Utilisateur) : void
+    + supprimerMembre(u : Utilisateur) : void
+    + ajouterAdministrateur(u : Administrateurm) : void
+    + supprimerAdministrateur(u : Administrateur) : void
+    + getNomGroupe() : String
+    + getNbMembres() : int
+    + setNomGroupe(nom : String) : void
+}
+
+class QCM {
+    - question: String
+    - nbVotes: int
+    + getQuestion() : String
+    + getVotes() : int
+    + ajouterChoix(intitule : String) : void
+    + supprimerChoix(index : int) : void
+    + ajouterVote(index : int, votant : Utilisateur) : void
+    + supprimerVote(index : int, votant : Utilisateur) : void
+}
+
+class Choix {
+    intitule: String
+}
+
+class Administrateur
+
+class Masquer {
+    date: LocalDate
+    raison: String
+}
+
+Publication <|-- Message
+Publication <|-- QCM
+Utilisateur <|-- Administrateur
+Utilisateur "1" -- "*" Publication : publier
+Utilisateur "*" -- "*" Message
+(Utilisateur, Message) .. Noter
+QCM "1" *-- "*" Choix
+Utilisateur "*" -- "*" Choix : voter
+Utilisateur "*" --o "*" Groupe : appartenir
+Administrateur "1..3" -- "*" Groupe : modérer
+
+(Publication, Administrateur) "*" .. Masquer
+
+@enduml
