@@ -5,9 +5,12 @@
     <title>Title</title>
 </head>
 <body>
-<form method="GET" action="">
+<form method="GET" action="routeur.php">
     <fieldset>
         <legend>Mon formulaire :</legend>
+        <p>
+            <input type='hidden' name='action' value='creerDepuisFormulaire'>
+        </p>
         <p>
             <label for="login_id">Login</label> :
             <input type="text" placeholder="leblancj" name="login" id="login_id" required/>

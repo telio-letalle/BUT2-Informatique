@@ -26,6 +26,22 @@ class ControleurUtilisateur {
         self::afficherVue('utilisateur/formulaireCreation.php');
     }
 
+    public static function creerDepuisFormulaire() : void {
+        if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+            var_dump($_GET);
+
+            $login = $_GET['login'];
+            $nom = $_GET['nom'];
+            $prenom = $_GET['prenom'];
+
+            $utilisateur = new ModeleUtilisateur($login, $nom, $prenom);
+
+            $utilisateur->ajouter();
+
+            self::afficherListe();
+        }
+    }
+
     private static function afficherVue(string $cheminVue, array $parametres = []) : void {
         extract($parametres); // Crée des variables à partir du tableau $parametres
         require "../vue/$cheminVue"; // Charge la vue
