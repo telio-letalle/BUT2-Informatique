@@ -15,7 +15,8 @@ ALTER TABLE Equipes ADD CONSTRAINT fk_Equipes FOREIGN KEY (codeEquipe, codeSalar
 CREATE OR REPLACE PROCEDURE AjouterJourneeTravail (
                         p_codeSalarie Travailler.codeSalarie%TYPE,
                         p_codeProjet Travailler.codeProjet%TYPE,
-                        p_dateTravail Travailler.dateTravail%TYPE) IS
+                        p_dateTravail Travailler.dateTravail%TYPE
+) IS
 BEGIN
     INSERT INTO Travailler(codeSalarie, dateTravail, codeProjet) VALUES (p_codeSalarie, p_dateTravail, p_codeProjet); 
 
@@ -26,7 +27,8 @@ END;
 -- 8)
 CREATE OR REPLACE PROCEDURE AffecterSalarieEquipe (
                         p_codeSalarie EtreAffecte.codeSalarie%TYPE,
-                        p_codeEquipe EtreAffecte.codeEquipe%TYPE) IS
+                        p_codeEquipe EtreAffecte.codeEquipe%TYPE
+) IS
     v_nbEquipes NUMBER;    
 BEGIN
     SELECT COUNT(*) INTO v_nbEquipes
@@ -48,7 +50,7 @@ CREATE OR REPLACE PROCEDURE AjouterProjetExterne (
                         p_villeProjet ProjetsExternes.villeProjet%TYPE,
                         p_clientProjet ProjetsExternes.clientProjet%TYPE,
                         p_codeEquipe Equipes.codeEquipe%TYPE
-                        ) IS
+) IS
     v_nbProjets NUMBER;
 BEGIN
     SELECT COUNT(*) INTO v_nbProjets
@@ -69,7 +71,7 @@ CREATE OR REPLACE PROCEDURE AjouterProjetInterne (
                         p_nomProjet ProjetsInternes.nomProjet%TYPE,
                         p_serviceProjet ProjetsInternes.serviceProjet%TYPE,
                         p_codeSalarieResponsable ProjetsInternes.codeSalarieResponsable%TYPE
-                        ) IS
+) IS
     v_nbProjets NUMBER;
 BEGIN
     SELECT COUNT(*) INTO v_nbProjets
@@ -85,3 +87,88 @@ BEGIN
 END;
 -- CALL AjouterProjetInterne('P1'); erreur car existe dans ProjetsExternes (comme demandé)
 -- CALL AjouterProjetInterne('P8', 'Programme de comptabilité', 'Service COMPTA', 'S9')
+
+
+
+-- 11)
+CREATE OR REPLACE TRIGGER tr_aft_ins_Travailler
+    AFTER INSERT ON Travailler
+FOR EACH ROW
+BEGIN
+    UPDATE Salaries 
+    SET nbTotalJourneesTravail = nbTotalJourneesTravail + 1
+    WHERE codeSalarie = :NEW.codeSalarie;
+END;
+
+-- 12)
+CREATE OR REPLACE TRIGGER tr_bef_ins_EtreAffecte
+BEFORE INSERT ON EtreAffecte
+FOR EACH ROW
+DECLARE
+    v_nbEquipes NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_nbEquipes
+    FROM EtreAffecte
+    WHERE codeSalarie = :NEW.codeSalarie;
+
+    IF v_nbEquipes >= 3
+    THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Le salarié est déjà affecté à au moins 3 équipes');
+    END IF;
+END;
+
+-- 13)
+CREATE OR REPLACE TRIGGER tr_maj_Travailler
+AFTER INSERT OR UPDATE OR DELETE ON Travailler
+FOR EACH ROW
+BEGIN
+    IF (INSERTING OR UPDATING) THEN
+        UPDATE Salaries 
+        SET nbTotalJourneesTravail = nbTotalJourneesTravail + 1
+        WHERE codeSalarie = :NEW.codeSalarie;
+    END IF;
+    IF (DELETING OR UPDATING) THEN
+        UPDATE Salaries 
+        SET nbTotalJourneesTravail = nbTotalJourneesTravail - 1
+        WHERE codeSalarie = :OLD.codeSalarie;
+    END IF;
+END;
+
+-- 14)
+CREATE OR REPLACE TRIGGER tr_bef_ins_ProjetsInternes
+BEFORE INSERT ON ProjetsInternes
+FOR EACH ROW
+DECLARE
+    v_nbProjet NUMBER;
+BEGIN
+       SELECT COUNT(codeProjet) INTO v_nbProjet 
+       FROM ProjetsExternes
+       WHERE codeProjet = :NEW.codeProjet;
+
+       IF v_nbProjet >= 1 THEN
+              RAISE_APPLICATION_ERROR(-20011, 'Le projet existe déjà en tant que projet Externe');
+       END IF;
+END;
+
+CREATE OR REPLACE TRIGGER tr_bef_ins_ProjetsExternes
+BEFORE INSERT ON ProjetsExternes
+FOR EACH ROW
+DECLARE
+    v_nbProjet NUMBER;
+BEGIN
+       SELECT COUNT(codeProjet) INTO v_nbProjet 
+       FROM ProjetsInternes
+       WHERE codeProjet = :NEW.codeProjet;
+
+       IF v_nbProjet >= 1 THEN
+              RAISE_APPLICATION_ERROR(-20011, 'Le projet existe déjà en tant que projet Interne');
+       END IF;
+END;
+
+-- 15
+
+
+-- 17
+
+
+-- 18

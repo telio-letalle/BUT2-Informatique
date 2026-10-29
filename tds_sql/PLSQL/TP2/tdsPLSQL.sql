@@ -217,6 +217,9 @@ BEGIN
     END LOOP;
 END;
 
+
+-- Quatrième partie – Edition des résultats d’une ronde :
+
 -- 13
 CREATE OR REPLACE FUNCTION categorieJoueur(
     p_dateNaissance IN Joueurs.dateNaissanceJoueur%TYPE,
@@ -232,4 +235,404 @@ BEGIN
     ELSE
         RETURN 'Vet' || p_sexe;
     END IF;
+END;
+
+
+
+-----------------------------------------------------------------------
+-- Les exercices précédents sont gardés dans le fichier car            \
+-- des fonctions/procédures sont utilisés dans les questions suivantes  }
+------------------------------------------------------------------------
+
+----------\
+--        |
+-- BONUS: |
+--        |
+----------/
+
+-- Factorisation de requête, non demandée et créée par envie
+-- car répétition du même bloc de requête dans la suite
+CREATE OR REPLACE FUNCTION recupererNbJoueursTournoiRonde(
+    p_idJoueur IN Joueurs.idJoueur%TYPE,
+    p_idTournoi IN Tournois.idTournoi%TYPE,
+    p_numRonde IN Parties.numRonde%TYPE
+) RETURN NUMBER IS
+    v_nbJoueurs NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_nbJoueurs
+    FROM Joueurs j
+    JOIN Participer p ON j.idJoueur = p.idJoueur
+    JOIN Tournois t ON p.idTournoi = t.idTournoi
+    JOIN Parties pr ON t.idTournoi = pr.idTournoi
+    WHERE j.idJoueur = p_idJoueur
+    AND t.idTournoi = p_idTournoi
+    AND pr.numRonde = p_numRonde;
+
+    RETURN v_nbJoueurs;
+END;
+
+CREATE OR REPLACE FUNCTION recupererNbRondesJoueur(
+    p_idJoueur IN Joueurs.idJoueur%TYPE,
+    p_idTournoi IN Tournois.idTournoi%TYPE
+) RETURN NUMBER IS
+    v_nbRondes NUMBER;
+BEGIN
+    SELECT COUNT(DISTINCT numRonde) INTO v_nbRondes
+    FROM Joueurs j
+    JOIN Participer p ON j.idJoueur = p.idJoueur
+    JOIN Tournois t ON p.idTournoi = t.idTournoi
+    JOIN Parties pr ON t.idTournoi = pr.idTournoi
+    WHERE j.idJoueur = p_idJoueur
+    AND t.idTournoi = p_idTournoi;
+
+    RETURN v_nbRondes;
+END;
+
+CREATE OR REPLACE FUNCTION creerRtyPartieJoueur(
+    p_idJoueur IN Joueurs.idJoueur%TYPE,
+    p_idTournoi IN Tournois.idTournoi%TYPE,
+    p_numRonde IN Parties.numRonde%TYPE
+) RETURN Parties%ROWTYPE IS
+    rty_partieJoueur Parties%ROWTYPE;
+BEGIN
+    SELECT * INTO rty_partieJoueur
+    FROM Parties
+    WHERE idTournoi = p_idTournoi
+    AND numRonde = p_numRonde
+    AND (idJoueurBlancs = p_idJoueur
+    OR idJoueurNoirs = p_idJoueur);
+
+    RETURN rty_partieJoueur;
+END;
+
+CREATE OR REPLACE FUNCTION creerRtyJoueur(
+    p_idJoueur IN Joueurs.idJoueur%TYPE
+) RETURN Joueurs%ROWTYPE IS
+    rty_joueur Joueurs%ROWTYPE;
+BEGIN
+    SELECT * INTO rty_joueur
+    FROM Joueurs j
+    WHERE j.idJoueur = p_idJoueur;
+
+    RETURN rty_joueur;
+END;
+
+CREATE OR REPLACE PROCEDURE affichageNomCategorieElo(
+    p_nom IN Joueurs.nomJoueur%TYPE,
+    p_prenom IN Joueurs.prenomJoueur%TYPE,
+    p_dateNaissance IN Joueurs.dateNaissanceJoueur%TYPE,
+    p_sexe IN Joueurs.sexeJoueur%TYPE,
+    p_elo IN Joueurs.eloJoueur%TYPE
+) IS
+BEGIN
+    DBMS_OUTPUT.PUT(
+        p_nom
+        || ' '
+        || p_prenom
+        || ' '
+        || categorieJoueur(p_dateNaissance, p_sexe)
+        || ' '
+        || p_elo
+    );
+END;
+-- Fin Factorisation
+
+-- 14
+CREATE OR REPLACE PROCEDURE affichageResultatsRonde(
+    p_idTournoi IN Parties.idTournoi%TYPE,
+    p_numRonde IN Parties.numRonde%TYPE
+) IS
+BEGIN
+    FOR v_participants IN (
+        SELECT resultatPartie,
+            j.nomJoueur as nj1, j.prenomJoueur as pj1, j.sexeJoueur as sj1, j.dateNaissanceJoueur as dns1, j.eloJoueur as ej1,
+            j2.nomJoueur as nj2, j2.prenomJoueur as pj2, j2.sexeJoueur as sj2, j2.dateNaissanceJoueur as dnj2, j2.eloJoueur as ej2
+        FROM Parties pr
+        JOIN Joueurs j ON pr.idJoueurBlancs = j.idJoueur
+        JOIN Joueurs j2 ON pr.idJoueurNoirs = j2.idJoueur
+        WHERE pr.idTournoi = p_idTournoi
+        AND pr.numRonde = p_numRonde
+        ORDER BY pr.numTable
+    )
+    LOOP
+        affichageNomCategorieElo(
+            v_participants.nj1,
+            v_participants.pj1,
+            v_participants.dns1,
+            v_participants.sj1,
+            v_participants.ej1
+        );
+
+        DBMS_OUTPUT.PUT(' ' || v_participants.resultatPartie || ' ');
+
+        affichageNomCategorieElo(
+            v_participants.nj2,
+            v_participants.pj2,
+            v_participants.dnj2,
+            v_participants.sj2,
+            v_participants.ej2
+        );
+
+        DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+END;
+
+
+-- Cinquième partie – Edition des résultats d’un joueur à un tournoi :
+
+-- 15
+CREATE OR REPLACE PROCEDURE affichageInfosJoueur(
+    p_idJoueur IN Joueurs.idJoueur%TYPE
+) IS
+    v_nbJoueurs NUMBER;
+    rty_joueur Joueurs%ROWTYPE;
+BEGIN
+    SELECT COUNT(*) INTO v_nbJoueurs
+    FROM Joueurs
+    WHERE idJoueur = p_idJoueur;
+
+    IF v_nbJoueurs = 0
+    THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Le joueur J100 n''existe pas');
+    ELSE
+        SELECT * INTO rty_joueur
+        FROM Joueurs
+        WHERE idJoueur = p_idJoueur;
+        
+        DBMS_OUTPUT.PUT_LINE('Identifiant joueur ' || ' : ' || rty_joueur.idJoueur);
+        DBMS_OUTPUT.PUT_LINE('Nom joueur ' || ' : ' || rty_joueur.nomJoueur);
+        DBMS_OUTPUT.PUT_LINE('Prénom joueur ' || ' : ' || rty_joueur.prenomJoueur);
+        DBMS_OUTPUT.PUT_LINE('Elo joueur ' || ' : ' || rty_joueur.eloJoueur);
+        DBMS_OUTPUT.PUT_LINE('Catégorie joueur ' || ' : ' || categorieJoueur(rty_joueur.dateNaissanceJoueur, rty_joueur.sexeJoueur));
+        DBMS_OUTPUT.PUT_LINE('Club joueur ' || ' : ' || rty_joueur.idClub);
+    END IF;
+END;
+
+-- 16 12h10->12h23
+CREATE OR REPLACE FUNCTION resultatEnPoint(
+    p_couleur VARCHAR,
+    p_resultat IN Parties.resultatPartie%TYPE
+) RETURN NUMBER IS
+    v_resultatenpoint NUMBER;
+BEGIN
+    IF p_couleur = 'B' AND p_resultat = '1-0' OR p_couleur = 'N' AND p_resultat = '0-1'
+    THEN
+        v_resultatenpoint := 1;
+    ELSIF p_couleur = 'B' AND p_resultat = '0-1' OR p_couleur = 'N' AND p_resultat = '1-0'
+    THEN
+        v_resultatenpoint := 0;
+    ELSE
+        v_resultatenpoint := .5;
+    END IF;
+
+    RETURN v_resultatenpoint;
+END;
+
+-- 17 12h25->12h47
+CREATE OR REPLACE FUNCTION couleurJoueurRonde(
+    p_idJoueur IN Joueurs.idJoueur%TYPE,
+    p_idTournoi IN Tournois.idTournoi%TYPE,
+    p_numRonde IN Parties.numRonde%TYPE
+) RETURN VARCHAR IS
+    v_nbJoueurs NUMBER;
+    rty_partieJoueur Parties%ROWTYPE;
+BEGIN
+    v_nbJoueurs := recupererNbJoueursTournoiRonde(p_idJoueur, p_idTournoi, p_numRonde);
+
+    IF v_nbJoueurs = 0
+    THEN
+        RETURN NULL;
+    ELSE
+        rty_partieJoueur := creerRtyPartieJoueur(p_idJoueur, p_idTournoi, p_numRonde);
+
+        IF rty_partieJoueur.idJoueurBlancs = p_idJoueur
+        THEN
+            RETURN 'B';
+        ELSE
+            RETURN 'N';
+        END IF;
+    END IF;
+END;
+
+-- 18 15h44->15h57
+CREATE OR REPLACE FUNCTION adversaireJoueurRonde (
+    p_idJoueur IN Joueurs.idJoueur%TYPE,
+    p_idTournoi IN Tournois.idTournoi%TYPE,
+    p_numRonde IN Parties.numRonde%TYPE
+) RETURN Joueurs.idJoueur%TYPE IS
+    v_nbJoueurs NUMBER;
+    v_couleurJoueur CHAR;
+    rty_partieJoueur Parties%ROWTYPE;
+    v_idAdversaire Joueurs.idJoueur%TYPE;
+BEGIN
+    v_nbJoueurs := recupererNbJoueursTournoiRonde(p_idJoueur, p_idTournoi, p_numRonde);
+
+    IF v_nbJoueurs = 0
+    THEN
+        RETURN NULL;
+    ELSE
+        v_couleurJoueur := couleurJoueurRonde(p_idJoueur, p_idTournoi, p_numRonde);
+        rty_partieJoueur := creerRtyPartieJoueur(p_idJoueur, p_idTournoi, p_numRonde);
+
+        IF v_couleurJoueur = 'B'
+        THEN
+            v_idAdversaire := rty_partieJoueur.idJoueurNoirs;
+        ELSE
+            v_idAdversaire := rty_partieJoueur.idJoueurBlancs;
+        END IF;
+
+        RETURN v_idAdversaire;
+    END IF;
+END;
+
+-- 19 15h09->15h18
+CREATE OR REPLACE FUNCTIon resultatJoueurRonde(
+    p_idJoueur IN Joueurs.idJoueur%TYPE,
+    p_idTournoi IN Tournois.idTournoi%TYPE,
+    p_numRonde IN Parties.numRonde%TYPE
+) RETURN NUMBER IS
+    v_nbJoueurs NUMBER;
+    v_couleurJoueur CHAR;
+    v_resultatJoueur NUMBER;
+    rty_partieJoueur Parties%ROWTYPE;
+BEGIN
+    v_nbJoueurs := recupererNbJoueursTournoiRonde(p_idJoueur, p_idTournoi, p_numRonde);
+
+    IF v_nbJoueurs = 0
+    THEN
+        RETURN NULL;
+    ELSE
+        v_couleurJoueur := couleurJoueurRonde(p_idJoueur, p_idTournoi, p_numRonde);
+        rty_partieJoueur := creerRtyPartieJoueur(p_idJoueur, p_idTournoi, p_numRonde);
+
+        v_resultatJoueur := resultatEnPoint(v_couleurJoueur, rty_partieJoueur.resultatPartie);
+    
+        RETURN v_resultatJoueur;
+    END IF;
+END;
+
+-- 20 15h30->16h39 compliqué
+CREATE OR REPLACE PROCEDURE affichagePartiesJoueurTournoi(
+    p_idJoueur IN Joueurs.idJoueur%TYPE,
+    p_idTournoi IN Tournois.idTournoi%TYPE
+) IS
+    rty_adversaire Joueurs%ROWTYPE;
+    v_idAdversaire Joueurs.idJoueur%TYPE;
+
+    CURSOR c_partiesJoueurTournoi IS
+        SELECT numRonde
+        FROM Joueurs j
+        JOIN Participer p ON j.idJoueur = p.idJoueur
+        JOIN Tournois t ON p.idTournoi = t.idTournoi
+        JOIN Parties pr ON t.idTournoi = pr.idTournoi
+        WHERE t.idTournoi = p_idTournoi
+        AND j.idJoueur = p_idJoueur
+        AND (idJoueurBlancs = p_idJoueur
+        OR idJoueurNoirs = p_idJoueur)
+        ORDER BY pr.numRonde;
+    -- sûrement possible de factoriser ce cursor
+    -- via une fonction qui renvoie le cursor créé
+    -- qu'on stocke dans une variable, en une ligne simple
+        -- Recherches sasns succès
+BEGIN
+    FOR v_partie IN c_partiesJoueurTournoi
+    LOOP
+        v_idAdversaire := adversaireJoueurRonde(p_idJoueur, p_idTournoi, v_partie.numRonde);
+        rty_adversaire := creerRtyJoueur(v_idAdversaire);
+
+        DBMS_OUTPUT.PUT(
+            'R'
+            || v_partie.numRonde
+            || ' '
+            || couleurJoueurRonde(p_idJoueur, p_idTournoi, v_partie.numRonde)
+            || ' '
+        );
+
+        affichageNomCategorieElo(
+            rty_adversaire.nomJoueur,
+            rty_adversaire.prenomJoueur,
+            rty_adversaire.dateNaissanceJoueur,
+            rty_adversaire.sexeJoueur,
+            rty_adversaire.eloJoueur
+        );
+
+        DBMS_OUTPUT.PUT_LINE(
+            ' '
+            || resultatJoueurRonde(p_idJoueur, p_idTournoi, v_partie.numRonde)
+        );
+    END LOOP;
+END;
+-- recherche internet via ia pour re comprendre l'utilisation du cursor
+
+-- 21 14h00->14h09
+CREATE OR REPLACE FUNCTION nbPointsJoueurTournoi(
+    p_idJoueur Joueurs.idJoueur%TYPE,
+    p_idTournoi Tournois.idTournoi%TYPE
+) RETURN NUMBER IS
+    v_nbPointsRonde NUMBER;
+    v_nbPointsTotal NUMBER;
+
+    CURSOR c_partiesJoueurTournoi IS
+        SELECT numRonde
+        FROM Joueurs j
+        JOIN Participer p ON j.idJoueur = p.idJoueur
+        JOIN Tournois t ON p.idTournoi = t.idTournoi
+        JOIN Parties pr ON t.idTournoi = pr.idTournoi
+        WHERE t.idTournoi = p_idTournoi
+        AND j.idJoueur = p_idJoueur
+        AND (idJoueurBlancs = p_idJoueur
+        OR idJoueurNoirs = p_idJoueur)
+        ORDER BY pr.numRonde;
+    -- Idem qu'à la question précédente
+BEGIN
+    v_nbPointsTotal := 0;
+
+    FOR v_partie IN c_partiesJoueurTournoi
+    LOOP
+        v_nbPointsRonde := resultatJoueurRonde(p_idJoueur, p_idTournoi, v_partie.numRonde);
+
+        v_nbPointsTotal := v_nbPointsTotal + v_nbPointsRonde;
+    END LOOP;
+
+    RETURN v_nbPointsTotal;
+END;
+
+-- 22 14h15->?(pause)
+CREATE OR REPLACE FUNCTION cumulatifJoueurTournoi(
+    p_idJoueur Joueurs.idJoueur%TYPE,
+    p_idTournoi Tournois.idTournoi%TYPE
+) RETURN NUMBER IS
+    v_nbPointsRondeActuelle NUMBER;
+    v_nbPointsTotalRondeActuelle NUMBER;
+    v_cumulatif NUMBER;
+    v_nbPointsTotalPrécédent NUMBER;
+
+    CURSOR c_partiesJoueurTournoi IS
+        SELECT numRonde
+        FROM Joueurs j
+        JOIN Participer p ON j.idJoueur = p.idJoueur
+        JOIN Tournois t ON p.idTournoi = t.idTournoi
+        JOIN Parties pr ON t.idTournoi = pr.idTournoi
+        WHERE t.idTournoi = p_idTournoi
+        AND j.idJoueur = p_idJoueur
+        AND (idJoueurBlancs = p_idJoueur
+        OR idJoueurNoirs = p_idJoueur)
+        ORDER BY pr.numRonde;
+    -- Idem qu'à la question précédente
+BEGIN
+    v_nbPointsTotalPrécédent := 0;
+    v_cumulatif := 0;
+
+    FOR v_partie IN c_partiesJoueurTournoi
+    LOOP
+        v_nbPointsRondeActuelle := resultatJoueurRonde(p_idJoueur, p_idTournoi, v_partie.numRonde);
+
+        v_nbPointsTotalRondeActuelle := v_nbPointsTotalPrécédent + v_nbPointsRondeActuelle;
+
+        v_cumulatif := v_cumulatif + v_nbPointsTotalRondeActuelle;
+
+        v_nbPointsTotalPrécédent := v_nbPointsTotalRondeActuelle;
+    END LOOP;
+
+    RETURN v_cumulatif;
 END;
