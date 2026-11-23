@@ -13,9 +13,9 @@ ALTER TABLE Equipes ADD CONSTRAINT fk_Equipes FOREIGN KEY (codeEquipe, codeSalar
 
 -- 7)
 CREATE OR REPLACE PROCEDURE AjouterJourneeTravail (
-                        p_codeSalarie Travailler.codeSalarie%TYPE,
-                        p_codeProjet Travailler.codeProjet%TYPE,
-                        p_dateTravail Travailler.dateTravail%TYPE
+    p_codeSalarie Travailler.codeSalarie%TYPE,
+    p_codeProjet Travailler.codeProjet%TYPE,
+    p_dateTravail Travailler.dateTravail%TYPE
 ) IS
 BEGIN
     INSERT INTO Travailler(codeSalarie, dateTravail, codeProjet) VALUES (p_codeSalarie, p_dateTravail, p_codeProjet); 
@@ -45,11 +45,11 @@ END;
 
 -- 9)
 CREATE OR REPLACE PROCEDURE AjouterProjetExterne (
-                        p_codeProjet ProjetsExternes.codeProjet%TYPE,
-                        p_nomProjet ProjetsExternes.nomProjet%TYPE,
-                        p_villeProjet ProjetsExternes.villeProjet%TYPE,
-                        p_clientProjet ProjetsExternes.clientProjet%TYPE,
-                        p_codeEquipe Equipes.codeEquipe%TYPE
+    p_codeProjet ProjetsExternes.codeProjet%TYPE,
+    p_nomProjet ProjetsExternes.nomProjet%TYPE,
+    p_villeProjet ProjetsExternes.villeProjet%TYPE,
+    p_clientProjet ProjetsExternes.clientProjet%TYPE,
+    p_codeEquipe Equipes.codeEquipe%TYPE
 ) IS
     v_nbProjets NUMBER;
 BEGIN
@@ -67,10 +67,10 @@ END;
 --CALL AjouterProjetExterne('P7'); erreur car existe dans ProjetsInternes (comme demandé)
 
 CREATE OR REPLACE PROCEDURE AjouterProjetInterne (
-                        p_codeProjet ProjetsInternes.codeProjet%TYPE,
-                        p_nomProjet ProjetsInternes.nomProjet%TYPE,
-                        p_serviceProjet ProjetsInternes.serviceProjet%TYPE,
-                        p_codeSalarieResponsable ProjetsInternes.codeSalarieResponsable%TYPE
+    p_codeProjet ProjetsInternes.codeProjet%TYPE,
+    p_nomProjet ProjetsInternes.nomProjet%TYPE,
+    p_serviceProjet ProjetsInternes.serviceProjet%TYPE,
+    p_codeSalarieResponsable ProjetsInternes.codeSalarieResponsable%TYPE
 ) IS
     v_nbProjets NUMBER;
 BEGIN
@@ -88,9 +88,24 @@ END;
 -- CALL AjouterProjetInterne('P1'); erreur car existe dans ProjetsExternes (comme demandé)
 -- CALL AjouterProjetInterne('P8', 'Programme de comptabilité', 'Service COMPTA', 'S9')
 
+-- 10
+CREATE OR REPLACE PROCEDURE affichageParticipantsTournoi (
+    p_idTournoi Tournois.idTournoi%TYPE
+) IS
+BEGIN
+    FOR v_ligne IN (
+        SELECT nomJoueur, prenomJoueur, eloJoueur
+        FROM Participer p
+        JOIN Joueurs j ON p.idJoueur = j.idJoueur
+        WHERE idTournoi = p_idTournoi
+        ORDER BY eloJoueur DESC, nomJoueur ASC;
+    )
+    LOOP
+        DBMS_OUTPUT.PUT_LINE(v_ligne.nomJoueur || ' ' || v_ligne.prenomJoueur || ' ' || v_ligne.eloJoueur);
+    END LOOP;
+END;
 
-
--- 11)
+-- 11
 CREATE OR REPLACE TRIGGER tr_aft_ins_Travailler
     AFTER INSERT ON Travailler
 FOR EACH ROW

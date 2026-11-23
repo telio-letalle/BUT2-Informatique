@@ -1,3 +1,9 @@
+-------------------------------------------------------------------------------------
+-- Les premiers exercices sont gardés dans le fichier car                            \
+-- des fonctions/procédures sont utilisés pour les questions bonus (bonus ligne 250)  }
+--------------------------------------------------------------------------------------
+
+
 SET SERVEROUTPUT ON;
 
 -- Première partie : Les Blocs PL/SQL
@@ -63,7 +69,6 @@ DECLARE
     v_idTournoi Tournois.idTournoi%TYPE := 'T1';
     v_nbTournoi NUMBER;
     rty_Tournois Tournois%ROWTYPE;
-    
 BEGIN
     SELECT COUNT(*) INTO v_nbTournoi
     FROM Tournois
@@ -563,6 +568,7 @@ BEGIN
     END LOOP;
 END;
 -- recherche internet via ia pour re comprendre l'utilisation du cursor
+-- recherche sans succès pour la factorisation avec CURSOR
 
 -- 21 14h00->14h09
 CREATE OR REPLACE FUNCTION nbPointsJoueurTournoi(

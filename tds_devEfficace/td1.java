@@ -1,0 +1,38 @@
+=// Exercice 7. Croissants
+boolean estCroissant(int []t)
+{
+	// retourne vrai ssi les éléments sont rangés par ordre croisant
+	return estCroissantAux(t, 0);
+}
+
+boolean estCroissantAux(int []t, int i) 
+{
+        // Prérequis :  0 <= i < t.length
+	if (i == t.length - 1) return true;
+	return (t[i] <= t[i+1]) && estCroissantAux(t, i+1);
+}
+
+// Exercice 8. Pavage avec des dominos
+int f(int n)
+{
+	// Prérequis : n >= 1
+	if (n == 1) return 1;
+	if (n == 2) return 2;
+	return f(n-1) + f(n-2);
+}
+
+// Exercice 9. Hanoï
+void resoudreAux(int n, int depart, int milieu, int arrivee)
+{
+	// Prérequis : n >=  1
+	if (n == 1) System.out.println(i + " -> " + j);
+	else {
+		resoudreAux(n-1, depart, arrivee, milieu);
+		resoudreAux(1, depart, milieu, arrivee);
+		resoudreAux(n-1, milieu, depart, arrivee);
+	}
+}
+void resoudre(int n)
+{
+	resoudreAux(n, 1, 2, 3);
+}

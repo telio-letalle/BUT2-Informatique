@@ -58,3 +58,10 @@ int main(int argc, char const *argv[]) {
 
     return 0;
 }
+
+/*
+tubes anonymes
+INT FD[2]
+pipe(fd)
+fd[0] sortie
+fd[1] entree
